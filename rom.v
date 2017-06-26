@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+//指令存储器
+
 module ROM (addr,data);
 input [31:0] addr;
 output [31:0] data;

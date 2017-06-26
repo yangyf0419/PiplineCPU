@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+//板子接口
+
 module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout);
 input reset,clk;
 input rd,wr;
