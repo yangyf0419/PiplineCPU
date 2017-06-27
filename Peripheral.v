@@ -21,6 +21,7 @@ reg [31:0] TH,TL;
 reg [2:0] TCON;
 assign irqout = TCON[2];
 
+//读取外设寄存器
 always@(*) begin
 	if(rd) begin
 		case(addr)
@@ -37,6 +38,7 @@ always@(*) begin
 		rdata <= 32'b0;
 end
 
+//写入外设寄存器
 always@(negedge reset or posedge clk) begin
 	if(~reset) begin
 		TH <= 32'b0;
