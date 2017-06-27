@@ -89,7 +89,7 @@ module test;
         #10 OpCode = 6'h07; Funct = 6'h17;
             Data_A = 32'hc672_e58a; Data_B = zero; // 0  
         #10 OpCode = 6'h07; Funct = 6'h33;
-            Data_A = 32'h5672_e58a; Data_B = zero; // 1 wrong
+            Data_A = 32'h5672_e58a; Data_B = zero; // 1
         // bltz
         #10 OpCode = 6'h01; Funct = 6'h24;
             Data_A = zero; Data_B = zero; // 0
@@ -148,5 +148,22 @@ module test;
             Data_A = d; Data_B = c; // 1
         #10 OpCode = 6'h0b; Funct = 6'h2e;
             Data_A = d; Data_B = a; // 0
+        // sll
+        #10 OpCode = 6'h00; Funct = 6'h00;
+            Data_A = b; Data_B = 32'hea6c_50bb; // 32'h4d8a_1760
+        #10 OpCode = 6'h00; Funct = 6'h00;
+            Data_A = d; Data_B = 32'hea6c_50bb; // 32'hd800_0000
+        // srl
+        #10 OpCode = 6'h00; Funct = 6'h02;
+            Data_A = b; Data_B = 32'hea6c_50bb; // 32'h0753_6285
+        #10 OpCode = 6'h00; Funct = 6'h02;
+            Data_A = d; Data_B = 32'hea6c_50bb; // 32'h0000_001d
+        // sra
+        #10 OpCode = 6'h00; Funct = 6'h03;
+            Data_A = b; Data_B = 32'hea6c_50bb; // 32'hff53_6285
+        #10 OpCode = 6'h00; Funct = 6'h03;
+            Data_A = d; Data_B = 32'hea6c_50bb; // 32'hffff_fffd
+        #10 OpCode = 6'h00; Funct = 6'h03;
+            Data_A = b; Data_B = 32'h6a6c_50bb; // 32'h0353_6285
     end
 endmodule

@@ -16,7 +16,7 @@ module Control(OpCode, Funct,
     output ALUSrc2;
     output ExtOp;
     output LuOp;
-    output [5:0] ALUFun; // 待修改
+    output [5:0] ALUFun;
 
     assign PCSrc[2:0] =
         (OpCode == 6'h04)? 3'b001: // beq
