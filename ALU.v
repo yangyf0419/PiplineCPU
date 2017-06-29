@@ -19,7 +19,7 @@ module ALU(A, B, ALUFun, Sign, Z);
     always@(*)
         case (ALUFun)
             6'b000000: Z <= A + B; // add
-            6'b000001: Z <= A + ~B + 1; // sub
+            6'b000001: Z <= A - B; // sub
             6'b011000: Z <= A & B; // and
             6'b011110: Z <= A | B; // or
             6'b010110: Z <= A ^ B; // xor
