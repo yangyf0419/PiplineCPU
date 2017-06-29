@@ -1,10 +1,11 @@
 // Control.v
-module Control(OpCode, Funct,
+module Control(OpCode, Funct, IRQ, 
     PCSrc, Sign, RegWrite, RegDst, 
     MemRead, MemWrite, MemtoReg, 
     ALUSrc1, ALUSrc2, ExtOp, LuOp, ALUFun);
     input [5:0] OpCode;
     input [5:0] Funct;
+    input IRQ; // external interruption
     output [2:0] PCSrc;
     output Sign;
     output RegWrite;
@@ -18,7 +19,28 @@ module Control(OpCode, Funct,
     output LuOp;
     output [5:0] ALUFun;
 
+    wire exception;
+    assign exception = 
+        (OpCode == 6'h00    ||
+         OpCode == 6'h01    ||
+         OpCode == 6'h02    ||
+         OpCode == 6'h03    ||
+         OpCode == 6'h04    ||
+         OpCode == 6'h05    ||
+         OpCode == 6'h06    ||
+         OpCode == 6'h07    ||
+         OpCode == 6'h08    ||
+         OpCode == 6'h09    ||
+         OpCode == 6'h0a    ||
+         OpCode == 6'h0b    ||
+         OpCode == 6'h0c    ||
+         OpCode == 6'h0f    ||
+         OpCode == 6'h23    ||
+         OpCode == 6'h2b) ? 1'b0 : 1'b1;
+
     assign PCSrc[2:0] =
+        IRQ? 3'b100 :
+        exception? 3'd101 :
         (OpCode == 6'h04)? 3'b001: // beq
         (OpCode == 6'h05)? 3'b001: // bne
         (OpCode == 6'h06)? 3'b001: // blez
@@ -47,6 +69,8 @@ module Control(OpCode, Funct,
         1'b1;
 
     assign RegDst[1:0] =
+        IRQ? 2'b11:
+        exception? 2'd11:
         (OpCode == 6'h03)? 2'b10: // jal
         (OpCode == 6'h00)? 2'b01: // R type, jr, jalr
         2'b00;
@@ -60,6 +84,8 @@ module Control(OpCode, Funct,
         1'b0;
 
     assign MemtoReg =
+        IRQ? 2'd11 :
+        exception? 2'd10 :
         (OpCode == 6'h23)? 2'b01: // lw
         (OpCode == 6'h03)? 2'b10: // jal
         (OpCode == 6'h00 && Funct == 6'h09)? 2'b10: // jalr
