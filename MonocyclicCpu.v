@@ -113,7 +113,8 @@ module MonocyclicCpu (reset, clk);
     wire ConBA;
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
-    wire [31:0] Branch; // output of ALUout[0] mux
+    wire [31:0] Branch; // output of ALUOut[0] mux
+    wire [31:0] ALUOut;
 
     assign PC_plus_4 = PC + 32'd4;
     assign Branch = (ALUOut[0])? ConBA : PC_plus_4;
@@ -129,7 +130,6 @@ module MonocyclicCpu (reset, clk);
         32'h00000000;
 
     // alu part
-    wire [31:0] ALUOut;
     ALU alu(
     	.A(input_A),
     	.B(input_B),
