@@ -9,7 +9,7 @@ module MonocyclicCpu (reset, clk);
     wire [31:0] PC_next;
     always @(posedge clk or negedge reset) begin
         if (~reset)
-            PC <= 32'h00000000;
+            PC <= 32'h80000000;
         else 
             PC <= PC_next;
     end
@@ -17,7 +17,7 @@ module MonocyclicCpu (reset, clk);
     // instruction memory part
     wire [31:0] Instruction;
     ROM rom(
-        .Address(PC),
+        .Address({1'b0, PC[30:0]}), // PC[31] can't be index
         .Instruction(Instruction));
 
     wire [31:0] DataBusA;
@@ -37,7 +37,7 @@ module MonocyclicCpu (reset, clk);
     assign Rt = Instruction[20:16];
     assign Rs = Instruction[25:21];
     assign Imm16 = Instruction[15:0];
-    assign JT = {Instruction[25:0], 2'b00};
+    assign JT = Instruction[25:0];
     assign Shamt = Instruction[10:6];
     assign OpCode = Instruction[31:26];
     assign Funct = Instruction[5:0];
@@ -46,6 +46,7 @@ module MonocyclicCpu (reset, clk);
     parameter Ra = 5'd31; // function breakpoint register
 
     // control part
+    wire IRQ;
     wire [2:0] PCSrc;
     wire [1:0] RegDst;
     wire RegWrite;
@@ -62,6 +63,7 @@ module MonocyclicCpu (reset, clk);
     Control ctrl(
         .OpCode(OpCode),
         .Funct(Funct),
+        .IRQ(IRQ),
         .PCSrc(PCSrc),
         .ALUSrc1(ALUSrc1),
         .ALUSrc2(ALUSrc2),
@@ -99,7 +101,7 @@ module MonocyclicCpu (reset, clk);
     assign Ext_out = {ExtOp? {16{Imm16[15]}} : 16'h0000, Imm16};
 
     wire [31:0] LU_out; // output of LUOp mux
-    assign LU_out = (LUOp)? {Imm16, 16'b0} : Ext_out;
+    assign LU_out = (LUOp)? {Imm16, 16'h0000} : Ext_out;
 
     // input of ALU
     wire [31:0] input_A;
@@ -117,17 +119,16 @@ module MonocyclicCpu (reset, clk);
     wire [31:0] ALUOut;
 
     assign PC_plus_4 = PC + 32'd4;
-    assign Branch = (ALUOut[0])? ConBA : PC_plus_4;
+    assign Branch = ALUOut[0]? ConBA : PC_plus_4;
     assign ConBA = PC_plus_4 + {Ext_out[29:0], 2'b00};
 
     assign PC_next = 
         (PCSrc == 3'b000)? PC_plus_4 :
         (PCSrc == 3'b001)? Branch :
-        (PCSrc == 3'b010)? JT :
+        (PCSrc == 3'b010)? {PC_plus_4[31:28], JT, 2'b00} :
         (PCSrc == 3'b011)? DataBusA :
         (PCSrc == 3'b100)? ILLOP :
-        (PCSrc == 3'b101)? XADR : 
-        32'h00000000;
+        XADR;
 
     // alu part
     ALU alu(
@@ -144,12 +145,12 @@ module MonocyclicCpu (reset, clk);
     	.clk(clk),
     	.rd(MemRead),
     	.wr(MemWrite),
-    	.addr(ALUout),
+    	.addr(ALUOut),
     	.wdata(DataBusB),
     	.rdata(MemData));
 
     assign DataBusC = 
-    	(MemtoReg[1:0] == 2'b00)? ALUout :
+    	(MemtoReg[1:0] == 2'b00)? ALUOut :
     	(MemtoReg[1:0] == 2'b01)? MemData :
     	PC_plus_4;
 
