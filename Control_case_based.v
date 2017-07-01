@@ -48,11 +48,13 @@ module Control_c(OpCode, Funct, IRQ,
             PCSrc[2:0] <= 3'b100;
             RegDst[1:0] <= 2'b11;
             MemtoReg[1:0] <= 2'b11;
+            RegWrite <= 1'b1;
         end
         else if (exception) begin
             PCSrc[2:0] <= 3'b101;
             RegDst[1:0] <= 2'b11;
             MemtoReg[1:0] <= 2'b10;
+            RegWrite <= 1'b1;
         end
         else begin
             case ({OpCode, Funct})
@@ -78,6 +80,17 @@ module Control_c(OpCode, Funct, IRQ,
                 12'b000000001001: MemtoReg[1:0] <= 2'b10; // jalr
                 default: MemtoReg[1:0] <= 2'b00;
             endcase
+            case ({OpCode, Funct})
+                12'b101011??????: RegWrite <= 1'b0; // sw
+                12'b000100??????: RegWrite <= 1'b0; // beq
+                12'b000101??????: RegWrite <= 1'b0; // bne
+                12'b000110??????: RegWrite <= 1'b0; // blez
+                12'b000111??????: RegWrite <= 1'b0; // bgtz
+                12'b000001??????: RegWrite <= 1'b0; // bltz
+                12'b000010??????: RegWrite <= 1'b0; // j
+                12'b000000001000: RegWrite <= 1'b0; // jr
+                default: RegWrite <= 1'b1;
+            endcase
         end
     end
 
@@ -86,17 +99,6 @@ module Control_c(OpCode, Funct, IRQ,
             12'b000000101011: Sign <= 1'b0; // sltu
             12'b001011??????: Sign <= 1'b0; // sltiu
             default: Sign <= 1'b1;
-        endcase
-        case ({OpCode, Funct})
-            12'b101011??????: RegWrite <= 1'b0; // sw
-            12'b000100??????: RegWrite <= 1'b0; // beq
-            12'b000101??????: RegWrite <= 1'b0; // bne
-            12'b000110??????: RegWrite <= 1'b0; // blez
-            12'b000111??????: RegWrite <= 1'b0; // bgtz
-            12'b000001??????: RegWrite <= 1'b0; // bltz
-            12'b000010??????: RegWrite <= 1'b0; // j
-            12'b000000001000: RegWrite <= 1'b0; // jr
-            default: RegWrite <= 1'b1;
         endcase
         case ({OpCode, Funct})
             12'b000000000000: ALUSrc1 <= 1'b1; // sll
