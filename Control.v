@@ -19,7 +19,8 @@ module Control(OpCode, Funct, IRQ,
     output LuOp;
     output [5:0] ALUFun;
 
-    wire exception;
+    reg exception;
+    always @(*)
     assign exception = 
         (OpCode == 6'h00    ||
          OpCode == 6'h01    ||
