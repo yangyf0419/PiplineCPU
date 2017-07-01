@@ -1,4 +1,5 @@
 // Control.v
+// case based
 module Control(OpCode, Funct, IRQ, 
     PCSrc, Sign, RegWrite, RegDst, 
     MemRead, MemWrite, MemtoReg, 
@@ -19,8 +20,7 @@ module Control(OpCode, Funct, IRQ,
     output LuOp;
     output [5:0] ALUFun;
 
-    reg exception;
-    always @(*)
+    wire exception;
     assign exception = 
         (OpCode == 6'h00    ||
          OpCode == 6'h01    ||
@@ -111,8 +111,6 @@ module Control(OpCode, Funct, IRQ,
         (OpCode == 6'h0f)? 1'b1: // lui
         1'b0;
 
-    // Your code above
-    
     assign ALUFun[5:0] = 
         // (OpCode == 6'h00 && Funct == 6'h20)? 6'b000000: // add
         // (OpCode == 6'h00 && Funct == 6'h21)? 6'b000000: // addu
