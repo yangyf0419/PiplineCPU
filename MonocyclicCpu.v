@@ -1,9 +1,14 @@
 //MonocyclicCpu.v
 `timescale 1ns/1ps
 
-module MonocyclicCpu (reset, clk);
+module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, UART_RX, UART_TX);
     input reset;
     input clk;
+    output [7:0] led;
+    input [7:0] switch;
+    output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
+    input UART_RX;
+    output UART_TX;
 
     reg [31:0] PC;
     wire [31:0] PC_next;
@@ -118,9 +123,9 @@ module MonocyclicCpu (reset, clk);
     wire [31:0] Branch; // output of ALUOut[0] mux
     wire [31:0] ALUOut;
 
-    assign PC_plus_4 = PC + 32'd4;
+    assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
-    assign ConBA = PC_plus_4 + {Ext_out[29:0], 2'b00};
+    assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
 
     assign PC_next = 
         (PCSrc == 3'b000)? PC_plus_4 :
@@ -139,19 +144,50 @@ module MonocyclicCpu (reset, clk);
     	.Z(ALUOut));
 
     // data memory part
+    wire MemWr;
+    wire PerWr; // PeripheralWrite
+
     wire [31:0] MemData;
+    wire [31:0] DataOut;
+    wire [11:0] digi_in;
+
+    assign MemWr = (MemWr && ~ALUOut[30]); // waiting to confirm
+    assign PerWr = (MemWr && ALUOut[30]);
+
     DataMem mem(
     	.reset(reset),
     	.clk(clk),
     	.rd(MemRead),
-    	.wr(MemWrite),
+    	.wr(MemWr),
     	.addr(ALUOut),
     	.wdata(DataBusB),
     	.rdata(MemData));
 
+    Peripheral prph(
+        .reset(reset),
+        .clk(clk),
+        .rd(MemRead),
+        .wr(PerWr),
+        .addr(ALUOut),
+        .wdata(DataBusB),
+        .rdata(PerData),
+        .led(led),
+        .switch(switch),
+        .digi(digi_in),
+        .irqout(IRQ));
+
+    digitube_scan dgt_sc(
+        .digi_in(digi_in),
+        .digi_out4(digi_out4),
+        .digi_out3(digi_out3),
+        .digi_out2(digi_out2),
+        .digi_out1(digi_out1));
+
+    assign DataOut = ALUOut[30]? PerData : MemData;
+
     assign DataBusC = 
     	(MemtoReg[1:0] == 2'b00)? ALUOut :
-    	(MemtoReg[1:0] == 2'b01)? MemData :
+    	(MemtoReg[1:0] == 2'b01)? DataOut :
     	PC_plus_4;
 
 endmodule
