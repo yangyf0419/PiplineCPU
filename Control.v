@@ -50,7 +50,7 @@ module Control(OpCode, Funct, IRQ,
         (OpCode == 6'h02 || // j
          OpCode == 6'h03)? 3'b010: // jal
         (OpCode == 6'h00 && (Funct == 6'h08 || // jr
-                             Funct == 6'h09))? 3'b110: // jalr
+                             Funct == 6'h09))? 3'b011: // jalr
         3'b000;
 
     assign Sign = 
