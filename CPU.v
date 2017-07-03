@@ -1,16 +1,9 @@
 //MonocyclicCpu.v
-`timescale 1ns/1ps
+//`timescale 1ns/1ps
 
-module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, UART_RX, UART_TX);
+module CPU (reset, clk);
     input reset;
     input clk;
-    output [7:0] led;
-    input [7:0] switch;
-    output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
-    input UART_RX;
-    output UART_TX;
-
-    wire [31:0] PerData;
 
     reg [31:0] PC;
     wire [31:0] PC_next;
@@ -23,8 +16,8 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // instruction memory part
     wire [31:0] Instruction;
-    ROM_1 rom(
-        .Address({1'b0, PC[30:0]}), // PC[31] can't be index
+    ROM_2 rom(
+        .addr({1'b0, PC[30:0]}), // PC[31] can't be index
         .data(Instruction));
 
     wire [31:0] DataBusA;
@@ -36,7 +29,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     wire [4:0] Rs;
     wire [4:0] Shamt;
     wire [15:0] Imm16;
-    wire [27:0] JT;
+    wire [25:0] JT;
     wire [5:0] OpCode;
     wire [5:0] Funct;
 
@@ -54,6 +47,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // control part
     wire IRQ;
+    assign IRQ = 0;
     wire [2:0] PCSrc;
     wire [1:0] RegDst;
     wire RegWrite;
@@ -82,13 +76,17 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
         .MemRead(MemRead),
         .MemtoReg(MemtoReg),
         .ExtOp(ExtOp),
-        .LUOp(LUOp));
+        .LuOp(LUOp));
 
     // register part
+    //按照目前所做的ALU，当 RegDst == 2'b00 时，AddrC应该取 Rt ，之前取了 Rd 
+    //相应的 当 RegDst == 2'b01 时，AddrC应该取 Rd ，之前取了 Rt
+    //上述两点与实验指导书上所画的数据通路不同，特此着重提醒
+    //经由上述修复以后暴露了新问题，ALU不能处理beq指令
     wire [4:0] AddrC;
     assign AddrC = 
-        (RegDst == 2'b00)? Rd : 
-        (RegDst == 2'b01)? Rt :
+        (RegDst == 2'b00)? Rt : 
+        (RegDst == 2'b01)? Rd :
         (RegDst == 2'b10)? Ra :
         Xp;
 
@@ -119,15 +117,16 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // program counter part
     wire [31:0] PC_plus_4;
-    wire ConBA;
+    //ConBA信号是32bit的，之前把它当成了1bit的信号
+    wire [31:0] ConBA;
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
     wire [31:0] Branch; // output of ALUOut[0] mux
     wire [31:0] ALUOut;
 
     assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
-    assign Branch = ALUOut[0]? ConBA : PC_plus_4;
     assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
+    assign Branch = ALUOut[0]? ConBA : PC_plus_4;
 
     assign PC_next = 
         (PCSrc == 3'b000)? PC_plus_4 :
@@ -165,31 +164,11 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     	.wdata(DataBusB),
     	.rdata(MemData));
 
-    Peripheral prph(
-        .reset(reset),
-        .clk(clk),
-        .rd(MemRead),
-        .wr(PerWr),
-        .addr(ALUOut),
-        .wdata(DataBusB),
-        .rdata(PerData),
-        .led(led),
-        .switch(switch),
-        .digi(digi_in),
-        .irqout(IRQ));
-
-    digitube_scan dgt_sc(
-        .digi_in(digi_in),
-        .digi_out4(digi_out4),
-        .digi_out3(digi_out3),
-        .digi_out2(digi_out2),
-        .digi_out1(digi_out1));
-
-    assign DataOut = ALUOut[30]? PerData : MemData;
+    assign DataOut = MemData;
 
     assign DataBusC = 
     	(MemtoReg[1:0] == 2'b00)? ALUOut :
-    	(MemtoReg[1:0] == 2'b01)? DataOut :
+    	(MemtoReg[1:0] == 2'b01)? MemData :
     	PC_plus_4;
 
 endmodule

@@ -50,7 +50,7 @@ module Control(OpCode, Funct, IRQ,
         (OpCode == 6'h02 || // j
          OpCode == 6'h03)? 3'b010: // jal
         (OpCode == 6'h00 && (Funct == 6'h08 || // jr
-                             Funct == 6'h09))? 3'b110: // jalr
+                             Funct == 6'h09))? 3'b011: // jalr
         3'b000;
 
     assign Sign = 
@@ -132,14 +132,14 @@ module Control(OpCode, Funct, IRQ,
     always@(*)
         case(OpCode)
             6'h00: ALUFun[5:0] <= ALUFunTmp; // R type
-            6'h0c: ALUFun[5:0] <= 6'b011000: // andi
-            6'h0a: ALUFun[5:0] <= 6'b110101: // slti
-            6'h0b: ALUFun[5:0] <= 6'b110101: // sltiu
-            6'h04: ALUFun[5:0] <= 6'b110011: // beq
-            6'h05: ALUFun[5:0] <= 6'b110001: // bne
-            6'h06: ALUFun[5:0] <= 6'b111101: // blez
-            6'h07: ALUFun[5:0] <= 6'b111111: // bgtz
-            6'h01: ALUFun[5:0] <= 6'b111011: // bltz
+            6'h0c: ALUFun[5:0] <= 6'b011000; // andi
+            6'h0a: ALUFun[5:0] <= 6'b110101; // slti
+            6'h0b: ALUFun[5:0] <= 6'b110101; // sltiu
+            6'h04: ALUFun[5:0] <= 6'b110011; // beq
+            6'h05: ALUFun[5:0] <= 6'b110001; // bne
+            6'h06: ALUFun[5:0] <= 6'b111101; // blez
+            6'h07: ALUFun[5:0] <= 6'b111111; // bgtz
+            6'h01: ALUFun[5:0] <= 6'b111011; // bltz
             default: ALUFun[5:0] <= 6'b000000;
         endcase
         
