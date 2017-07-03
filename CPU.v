@@ -151,8 +151,8 @@ module CPU (reset, clk);
     wire [31:0] DataOut;
     wire [11:0] digi_in;
 
-    assign MemWr = (MemWr && ~ALUOut[30]); // waiting to confirm
-    assign PerWr = (MemWr && ALUOut[30]);
+    assign MemWr = (MemWrite && ~ALUOut[30]); // waiting to confirm
+    assign PerWr = (MemWrite && ALUOut[30]);
 
     DataMem mem(
     	.reset(reset),
