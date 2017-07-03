@@ -12,8 +12,14 @@ reg [31:0] RAMDATA [RAM_SIZE-1:0];
 
 assign rdata=(rd && (addr < RAM_SIZE))?RAMDATA[addr[31:2]]:32'b0;
 
-always@(posedge clk) begin
-    if(wr && (addr < RAM_SIZE)) RAMDATA[addr[31:2]]<=wdata;
+//忘了对reset信号进行处理
+integer i;
+always@(posedge clk or negedge reset) begin
+	if (~reset)
+		for (i = 0; i < RAM_SIZE; i = i + 1)
+			RAMDATA[i] <= 32'h00000000;
+    else if(wr && (addr < RAM_SIZE)) 
+    	RAMDATA[addr[31:2]]<=wdata;
 end
 
 endmodule
