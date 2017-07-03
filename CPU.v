@@ -78,10 +78,6 @@ module CPU (reset, clk);
         .LuOp(LUOp));
 
     // register part
-    //按照目前所做的ALU，当 RegDst == 2'b00 时，AddrC应该取 Rt ，之前取了 Rd 
-    //相应的 当 RegDst == 2'b01 时，AddrC应该取 Rd ，之前取了 Rt
-    //上述两点与实验指导书上所画的数据通路不同，特此着重提醒
-    //经由上述修复以后暴露了新问题，ALU不能处理beq指令
     wire [4:0] AddrC;
     assign AddrC = 
         (RegDst == 2'b00)? Rt : 
