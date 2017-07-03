@@ -2,7 +2,7 @@
 
 //板子接口
 
-module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout);
+module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd);
 input reset,clk;
 input rd,wr;
 input [31:0] addr;
@@ -20,6 +20,10 @@ output irqout;
 reg [31:0] TH,TL;
 reg [2:0] TCON;
 assign irqout = TCON[2];
+
+//UART
+input rxd;		//input data
+output txd;		//output data
 
 //读取外设寄存器
 always@(*) begin

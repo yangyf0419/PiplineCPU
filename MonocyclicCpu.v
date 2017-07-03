@@ -1,14 +1,16 @@
 //MonocyclicCpu.v
 `timescale 1ns/1ns
 
-module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, UART_RX, UART_TX);
+module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, Rdata, Wdata);
     input reset;
     input clk;
     output [7:0] led;
     input [7:0] switch;
     output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
-    input UART_RX;
-    output UART_TX;
+
+    //Data from or to the peripheral
+    input [31:0] Rdata;
+    output [31:0] Wdata;
 
     wire [31:0] PerData;
 
