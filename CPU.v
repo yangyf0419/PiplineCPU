@@ -78,6 +78,7 @@ module CPU (reset, clk);
         .LuOp(LUOp));
 
     // register part
+
     wire [4:0] AddrC;
     assign AddrC = 
         (RegDst == 2'b00)? Rt : 

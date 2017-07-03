@@ -1,15 +1,14 @@
 //MonocyclicCpu.v
 `timescale 1ns/1ns
 
-module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, UART_RX, UART_TX);
+module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
     input reset;
     input clk;
     output [7:0] led;
     input [7:0] switch;
     output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
-    input UART_RX;
-    output UART_TX;
 
+    //peripheral data
     wire [31:0] PerData;
 
     reg [31:0] PC;
@@ -23,7 +22,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // instruction memory part
     wire [31:0] Instruction;
-    ROM_1 rom(
+    ROM rom(
         .Address({1'b0, PC[30:0]}), // PC[31] can't be index
         .data(Instruction));
 
@@ -36,7 +35,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     wire [4:0] Rs;
     wire [4:0] Shamt;
     wire [15:0] Imm16;
-    wire [27:0] JT;
+    wire [25:0] JT;
     wire [5:0] OpCode;
     wire [5:0] Funct;
 
@@ -82,13 +81,13 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
         .MemRead(MemRead),
         .MemtoReg(MemtoReg),
         .ExtOp(ExtOp),
-        .LUOp(LUOp));
+        .LuOp(LUOp));
 
     // register part
     wire [4:0] AddrC;
     assign AddrC = 
-        (RegDst == 2'b00)? Rd : 
-        (RegDst == 2'b01)? Rt :
+        (RegDst == 2'b00)? Rt : 
+        (RegDst == 2'b01)? Rd :
         (RegDst == 2'b10)? Ra :
         Xp;
 
@@ -119,13 +118,13 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // program counter part
     wire [31:0] PC_plus_4;
-    wire ConBA;
+    wire [31:0] ConBA;
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
     wire [31:0] Branch; // output of ALUOut[0] mux
     wire [31:0] ALUOut;
 
-    assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
+    assign PC_plus_4 = {1'b0, PC[30:0] + 31'd4};
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
     assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
 
@@ -153,8 +152,8 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     wire [31:0] DataOut;
     wire [11:0] digi_in;
 
-    assign MemWr = (MemWr && ~ALUOut[30]); // waiting to confirm
-    assign PerWr = (MemWr && ALUOut[30]);
+    assign MemWr = (MemWrite && ~ALUOut[30]); // waiting to confirm
+    assign PerWr = (MemWrite && ALUOut[30]);
 
     DataMem mem(
     	.reset(reset),
