@@ -1,8 +1,8 @@
 `timescale 1ns/1ns
 
-//板子接口
+//Interface
 
-module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout);
+module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd);
 input reset,clk;
 input rd,wr;
 input [31:0] addr;
@@ -21,7 +21,22 @@ reg [31:0] TH,TL;
 reg [2:0] TCON;
 assign irqout = TCON[2];
 
-//读取外设寄存器
+/***** UART Part Statement *****/
+/************ begin ************/
+input rxd;		//input data
+output txd;		//output data
+reg [7:0] UART_TXD;		//UART sending data
+reg [7:0] UART_RXD;		//UART received data
+reg [4:0] UART_CON;		//UART control signal
+
+wire baudRate;		//baudrate
+BaudRateGenerator baud(.sysclk(clk),.BaudRate(baudRate));
+
+
+/************* end *************/
+
+
+//Read outside register
 always@(*) begin
 	if(rd) begin
 		case(addr)
@@ -31,6 +46,9 @@ always@(*) begin
 			32'h4000000C: rdata <= {24'b0,led};			
 			32'h40000010: rdata <= {24'b0,switch};
 			32'h40000014: rdata <= {20'b0,digi};
+			32'h40000018: rdata <= {24'b0,UART_TXD};
+			32'h4000001C: rdata <= {24'b0,UART_RXD};
+			32'h40000020: rdata <= {27'b0,UART_CON};
 			default: rdata <= 32'b0;
 		endcase
 	end
@@ -38,7 +56,7 @@ always@(*) begin
 		rdata <= 32'b0;
 end
 
-//写入外设寄存器
+//write outside register
 always@(negedge reset or posedge clk) begin
 	if(~reset) begin
 		TH <= 32'b0;
@@ -61,6 +79,7 @@ always@(negedge reset or posedge clk) begin
 				32'h40000008: TCON <= wdata[2:0];		
 				32'h4000000C: led <= wdata[7:0];			
 				32'h40000014: digi <= wdata[11:0];
+
 				default: ;
 			endcase
 		end
