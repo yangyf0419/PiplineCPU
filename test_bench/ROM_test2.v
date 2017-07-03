@@ -11,10 +11,10 @@ module ROM_2 (addr,data);
         case(addr[9:2])   //Address Must Be Word Aligned.
             // addi $a0, $zero, 3 #(0x0003)
             8'd0:    data <= {6'h08, 5'd0 , 5'd4 , 16'h0003};
-            // jal sum
-            8'd1:    data <= {6'h03, 26'd3};
             // addi $sp, $sp, 256 #(0x0100)
-            8'd2:    data <= {6'h08, 5'd29 , 5'd29 , 16'h0100};
+            8'd1:    data <= {6'h08, 5'd29 , 5'd29 , 16'h0100};
+            // jal sum
+            8'd2:    data <= {6'h03, 26'd4};
             // Loop:
             // beq $zero, $zero, Loop 
             8'd3:    data <= {6'h04, 5'd0 , 5'd0 , 16'hffff};
@@ -39,7 +39,7 @@ module ROM_2 (addr,data);
             // addi $a0, $a0, -1 
             8'd12:   data <= {6'h08, 5'd4 , 5'd4 , 16'hffff};
             // jal sum 
-            8'd13:   data <= {6'h03, 26'd3};
+            8'd13:   data <= {6'h03, 26'd4};
             // lw $a0, 0($sp)  
             8'd14:   data <= {6'h23, 5'd29 , 5'd4 , 16'h0000};
             // lw $ra, 4($sp) 
