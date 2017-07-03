@@ -1,4 +1,4 @@
-`timescale 1ns/1ps
+`timescale 1ns/1ns
 
 module RegFile (reset,clk,addr1,data1,addr2,data2,wr,addr3,data3);
 input reset,clk;

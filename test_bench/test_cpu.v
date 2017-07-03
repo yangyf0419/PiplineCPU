@@ -8,7 +8,7 @@ module test_cpu();
 	initial begin
 		reset = 0;
 		clk = 1;
-		#200 reset = 1;
+		#50 reset = 1;
 	end
 	
 	always #50 clk = ~clk;

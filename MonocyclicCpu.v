@@ -1,5 +1,5 @@
 //MonocyclicCpu.v
-`timescale 1ns/1ps
+`timescale 1ns/1ns
 
 module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4, UART_RX, UART_TX);
     input reset;
