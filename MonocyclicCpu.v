@@ -8,6 +8,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     input [7:0] switch;
     output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
 
+    //peripheral data
     wire [31:0] PerData;
 
     reg [31:0] PC;
