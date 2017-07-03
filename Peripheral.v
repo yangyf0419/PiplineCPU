@@ -46,8 +46,14 @@ always@(*) begin
 			32'h4000000C: rdata <= {24'b0,led};			
 			32'h40000010: rdata <= {24'b0,switch};
 			32'h40000014: rdata <= {20'b0,digi};
-			32'h40000018: rdata <= {24'b0,UART_TXD};
-			32'h4000001C: rdata <= {24'b0,UART_RXD};
+			32'h40000018: begin
+							rdata <= {24'b0,UART_TXD};
+							UART_CON[2] <= 0;
+						end
+			32'h4000001C: begin
+							rdata <= {24'b0,UART_RXD};
+							UART_CON[3] <= 0;
+						end
 			32'h40000020: rdata <= {27'b0,UART_CON};
 			default: rdata <= 32'b0;
 		endcase
@@ -79,7 +85,8 @@ always@(negedge reset or posedge clk) begin
 				32'h40000008: TCON <= wdata[2:0];		
 				32'h4000000C: led <= wdata[7:0];			
 				32'h40000014: digi <= wdata[11:0];
-
+				32'h40000018: UART_TXD <= wdata[7:0];
+				32'h40000020: UART_CON[1:0] <= wdata[1:0];
 				default: ;
 			endcase
 		end
