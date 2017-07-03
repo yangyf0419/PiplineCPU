@@ -1,5 +1,4 @@
 //MonocyclicCpu.v
-//`timescale 1ns/1ps
 
 module CPU (reset, clk);
     input reset;
@@ -124,7 +123,7 @@ module CPU (reset, clk);
     wire [31:0] Branch; // output of ALUOut[0] mux
     wire [31:0] ALUOut;
 
-    assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
+    assign PC_plus_4 = {1'b0, PC[30:0] + 31'd4};
     assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
 

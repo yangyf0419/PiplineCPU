@@ -1,4 +1,4 @@
-`timescale 1ns/1ps
+`timescale 1ns/1ns
 
 //For Altera DE2: Trans non-scanning Digital tube to scanning Digital tube
 
