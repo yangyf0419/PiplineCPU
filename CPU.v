@@ -77,6 +77,7 @@ module CPU (reset, clk);
         .ExtOp(ExtOp),
         .LuOp(LUOp));
 
+    // register part
 
     wire [4:0] AddrC;
     assign AddrC = 
