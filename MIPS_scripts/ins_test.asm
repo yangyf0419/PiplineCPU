@@ -1,6 +1,6 @@
 # ins_test.asm
 
-lui $t0, -256 # $t0 = 0x00ff0000
+lui $t0, 255 # $t0 = 0x00ff0000
 addi $t1, $t0, 257 # $t1 = 0x00ff0101
 srl $s0, $t1, 8 # $s0 = 0x0000ff01
 sll $s1, $s0, 16 # $s1 = 0xff010000
