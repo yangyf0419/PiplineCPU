@@ -83,6 +83,34 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
         .ExtOp(ExtOp),
         .LuOp(LUOp));
 
+    
+
+    /***** Integrating the control signals according to the stages where they work ****/
+    /******************** begin ********************/
+
+    // There is no need to put "ExtOp" signal into any register,
+    // for it works just at "ID" stage
+
+    wire [2:0] WB_ctrlSignal;
+    wire [1:0] MEM_ctrlSignal;
+    wire [14:0] EX_ctrlSignal;
+    wire [19:0] whole_ctrlSignal;
+
+    // EX_ctrlSignal[0]=ALUSrc1, EX_ctrlSignal[1]=ALUSrc2, EX_ctrlSignal[3:2]=RegDst, EX_ctrlSignal[9:4]=ALUFun
+    // EX_ctrlSignal[10]=Sign, EX_ctrlSignal[11]=LUOp, EX_ctrlSignal[14:12]=PCSrc
+    assign EX_ctrlSignal = {PCSrc,LUOp,Sign,ALUFun,RegDst,ALUSrc2,ALUSrc1};
+
+    // MEM_ctrlSignal[0]=MemWrite, MEM_ctrlSignal[1]=MemRead 
+    assign MEM_ctrlSignal = {MemRead,MemWrite};
+
+    // WB_ctrlSignal[0]=RegWrite, WB_ctrlSignal[2:1]=MemtoReg
+    assign WB_ctrlSignal = {MemtoReg,RegWrite};
+
+    // whole_ctrlSignal[19:17]=WB_ctrlSignal, whole_ctrlSignal[16:15]=MEM_ctrlSignal, whole_ctrlSignal[14:0]=EX_ctrlSignal
+    assign whole_ctrlSignal = {WB_ctrlSignal,MEM_ctrlSignal,EX_ctrlSignal};
+
+    /******************** end ********************/
+
     // register part
     wire [4:0] AddrC;
     assign AddrC = 
