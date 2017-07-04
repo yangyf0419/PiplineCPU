@@ -100,7 +100,11 @@ module Control(OpCode, Funct, IRQ,
 
     assign ALUSrc2 =
         (OpCode == 6'h00 || // R type, jr, jalr
-         OpCode == 6'h04)? 1'b0: // beq
+         OpCode == 6'h04 || // beq
+         OpCode == 6'h05 || // bne
+         OpCode == 6'h06 || // blez
+         OpCode == 6'h07 || // bgtz
+         OpCode == 6'h01)? 1'b0: // bltz
         1'b1;
 
     assign ExtOp =

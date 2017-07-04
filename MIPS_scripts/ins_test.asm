@@ -1,6 +1,6 @@
 # ins_test.asm
 
-lui $t0, 256 # $t0 = 0x00ff0000
+lui $t0, 255 # $t0 = 0x00ff0000
 addi $t1, $t0, 257 # $t1 = 0x00ff0101
 srl $s0, $t1, 8 # $s0 = 0x0000ff01
 sll $s1, $s0, 16 # $s1 = 0xff010000
@@ -25,7 +25,7 @@ nor $s4, $s4, $s2 # $s4 = 0x00000eef
 andi $s4, $s4, 271 # $s4 = 0x0000000f
 sltiu $t2, $s2, 3 # $t2 = 0x00000000
 slti $t3, $s2, 2 # $t3 = 0x00000001
-or $t3, $t3, 6 # $t3 = 0x00000007
+or $t3, $t3, $s2 # $t3 = 0xfffff011
 and $s4, $t3, $s4 # $s4 = 0x00000001
 j L3
 L4:
