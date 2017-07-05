@@ -9,12 +9,11 @@ The interfaces of each module are arranged the way as follows:
 */
 
 // IF/ID Register
-module IF_ID_Register(sysclk,reset,flush,
+module IF_ID_Register(sysclk,reset,
 					Hazard_Detection,PC_next,IF_Instruction,
 					ID_Instruction,PC);
 
 input sysclk,reset;
-input flush;		//To deal with exception cases
 input Hazard_Detection;		//To deal with branch and jump instructions
 input [31:0] IF_Instruction;
 input [31:0] PC_next;
@@ -39,7 +38,6 @@ always @(posedge sysclk or negedge reset) begin
 		else
 			Instruction_reg <= IF_Instruction;
 		PC_reg <= PC_next;
-		//Maybe some modification is in need here for exception handling
 		PC <= PC_reg;
 	end
 end
@@ -48,12 +46,11 @@ endmodule
 
 
 // ID/EX Register
-module ID_EX_Register(sysclk,reset,flush,
+module ID_EX_Register(sysclk,reset,
 					wholeSignal,IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd,input_DataBusA,input_DataBusB,
 					EX_ctrlSignal,WB_ctrlSignal,MEM_ctrlSignal,Rs,Rt,Rd,output_DataBusA,output_DataBusB);
 
-input sysclk,reset;
-input flush;		//To deal with exception cases
+input sysclk,reset;		
 input [20:0] wholeSignal;	//the whole control signal
 input [4:0] IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd;
 input [31:0] input_DataBusA,input_DataBusB;
@@ -103,15 +100,15 @@ always @(posedge sysclk or negedge reset) begin
 end
 
 endmodule
+// ID/EX Register END
 
 
 // EX/MEM Register
-module EX_MEM_Register(sysclk,reset,flush,
+module EX_MEM_Register(sysclk,reset,
 						ID_EX_WB_ctrlSignal,ID_EX_MEM_ctrlSignal,EX_input_B,EX_ALUOut,EX_AddrC,RdMux,
 						MEM_ALUOut,WB_ctrlSignal,MEM_ctrlSignal,AddrC,EX_MEM_RegisterRd,MEM_B);
 
-input sysclk,reset;
-input flush;		//To deal with exception cases
+input sysclk,reset;		
 input [1:0] ID_EX_MEM_ctrlSignal;
 input [2:0] ID_EX_WB_ctrlSignal;
 input [31:0] EX_input_B,EX_ALUOut;
@@ -156,13 +153,16 @@ always @(posedge sysclk or negedge reset) begin
 	end
 end
 
+endmodule
+// EX/MEM Register END
+
+
 // MEM/WB Register
-module MEM_WB_Register(sysclk,reset,flush,
+module MEM_WB_Register(sysclk,reset,
 						MEM_ALUOut,EX_MEM_WB_ctrlSignal,EX_MEM_RegisterRd,ReadData,
 						WB_ctrlSignal,ReadData_Out,WB_ALUOut,MEM_WB_RegisterRd);
 
-input sysclk,reset;
-input flush;		//To deal with exception cases
+input sysclk,reset;		
 input [31:0] MEM_ALUOut;
 input [2:0] EX_MEM_WB_ctrlSignal;
 input [4:0] EX_MEM_RegisterRd;
@@ -198,6 +198,10 @@ always @(posedge sysclk or negedge reset) begin
 		WB_ALUOut <= ALUOut_reg;
 	end
 end
+
+endmodule
+// MEM/WB Register END
+
 
 
 // Register part finished
