@@ -1,16 +1,3 @@
-<style>
-    h1{
-        font-size: 2.4rem;
-    }
-    h2{
-        font-size: 1.6rem;
-        color: white;
-    }
-    div{
-        color: hsla(0,0%,100%,.7);
-    }
-</style>
-
 <h1>Some notes about pipeline</h1>
 
 <h2>Exception Handling</h2>
