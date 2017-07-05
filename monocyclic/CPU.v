@@ -1,4 +1,4 @@
-//MonocyclicCpu.v
+//PipelineCpu.v
 
 module CPU (reset, clk);
     input reset;
@@ -78,7 +78,6 @@ module CPU (reset, clk);
         .LuOp(LUOp));
 
     // register part
-
     wire [4:0] AddrC;
     assign AddrC = 
         (RegDst == 2'b00)? Rt : 
