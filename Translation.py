@@ -549,6 +549,7 @@ for path in sys.argv[1:]:
         lines, index = processLines(lines)
         lines = list(map(getOpr, lines))
         lines = list(map(lambda x: analyzeGrammar(x, index), list(enumerate(lines))))
+        lines = ["8'd" + str(index) + ": data <= " + line for index, line in enumerate(lines)]
         with open(name + '.mcc', 'w') as f:
             f.write('\n'.join(lines))
     else:
