@@ -2,15 +2,73 @@ module test_cpu();
 	
 	reg reset;
 	reg clk;
+	reg UART_RX;
 	
-	CPU cpu1(reset, clk);
+	system sys(
+		.sysclk(clk),
+		.reset(reset),
+		.rxd(UART_RX),
+		.txd(),
+		.led(), 
+		.switch(), 
+		.digi_out1(), 
+		.digi_out2(), 
+		.digi_out3(), 
+		.digi_out4());
+
 	
 	initial begin
 		reset = 0;
-		clk = 1;
-		#50 reset = 1;
+		clk = 0;
+		#2 reset = 1;
 	end
+
+	initial begin
+        UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;//输入 8'h96
+        #10416 UART_RX <= 1;//输出 8'h69 
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;//输入 8'hb9
+        #10416 UART_RX <= 0;//输出 8'h46
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        
+
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;//输入 8'h1e
+        #10416 UART_RX <= 1;//输出 8'h1e
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+    end
 	
-	always #50 clk = ~clk;
+	always #1 clk = ~clk;
 		
 endmodule
