@@ -2,7 +2,7 @@
 
 //Interface
 
-module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd);
+module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
 input reset,clk;
 input rd,wr;
 input [31:0] addr;
@@ -19,7 +19,7 @@ output irqout;
 
 reg [31:0] TH,TL;
 reg [2:0] TCON;
-assign irqout = TCON[2];
+assign irqout = TCON[2] && ~PC_31;
 
 /**** UART Variable Statement ****/
 /************ begin ************/
