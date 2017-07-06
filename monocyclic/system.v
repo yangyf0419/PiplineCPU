@@ -50,6 +50,7 @@ wire [31:0] PerData;
 wire PerWr;
 wire [31:0] ALUOut;
 wire [31:0] DataBusB;
+wire PC_31;
 
 wire clk;
 clkGenerator generator(.sysclk(sysclk),.reset(reset),.clk(clk));
@@ -61,7 +62,8 @@ MonocyclicCpu MCPU(.reset(reset),
 				  .MemRead(MemRead),
 				  .PerWr(PerWr),
 				  .ALUOut(ALUOut),
-				  .DataBusB(DataBusB));
+				  .DataBusB(DataBusB),
+                  .PC_31(PC_31));
 
 Peripheral prph(
         .reset(reset),
@@ -76,7 +78,8 @@ Peripheral prph(
         .digi(digi_in),
         .irqout(IRQ),
         .rxd(rxd),
-        .txd(txd));
+        .txd(txd),
+        .PC_31(PC_31));
 
 digitube_scan dgt_sc(
         .digi_in(digi_in),

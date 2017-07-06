@@ -7,6 +7,7 @@ input reset,clk;
 input rd,wr;
 input [31:0] addr;
 input [31:0] wdata;
+input PC_31;
 output [31:0] rdata;
 reg [31:0] rdata;
 

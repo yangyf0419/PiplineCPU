@@ -2,10 +2,11 @@
 `timescale 1ns/1ns
 
 // MonocyclicCpu
-module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB);
+module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB, PC_31);
     input reset;
     input clk;
     output IRQ;
+    output PC_31;
 
 
     //peripheral data
@@ -19,6 +20,8 @@ module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB
         else 
             PC <= PC_next;
     end
+
+    assign PC_31 = PC[31];
 
     // instruction memory part
     wire [31:0] Instruction;
