@@ -99,6 +99,8 @@ def processLines(lines:[str]): # abandon remarks
     for line in lines:
         match_group = line_pattern.match(line).groups()
         if match_group[0]: # label exists
+            if labelindex.get(match_group[0][:-1].strip()) != None:
+                raise Exception("Label "+match_group[0][:-1].strip()+" already exists!")
             labelindex[match_group[0][:-1].strip()] = len(lines_without_label)
         if match_group[1].strip():
             lines_without_label.append(match_group[1].strip())
@@ -549,7 +551,7 @@ for path in sys.argv[1:]:
         lines, index = processLines(lines)
         lines = list(map(getOpr, lines))
         lines = list(map(lambda x: analyzeGrammar(x, index), list(enumerate(lines))))
-        lines = ["8'd" + str(index) + ": data <= " + line for index, line in enumerate(lines)]
+        lines = ["16'd" + str(index) + ": data <= " + line + ";" for index, line in enumerate(lines)]
         with open(name + '.mcc', 'w') as f:
             f.write('\n'.join(lines))
     else:

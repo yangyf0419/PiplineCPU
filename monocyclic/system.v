@@ -67,7 +67,8 @@ MonocyclicCpu MCPU(.reset(reset),
 
 Peripheral prph(
         .reset(reset),
-        .clk(clk),
+        .timer_clk(clk),
+        .sysclk(sysclk),
         .rd(MemRead),
         .wr(PerWr),
         .addr(ALUOut),

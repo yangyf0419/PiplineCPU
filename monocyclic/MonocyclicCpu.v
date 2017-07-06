@@ -26,7 +26,7 @@ module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB
     // instruction memory part
     wire [31:0] Instruction;
     ROM rom(
-        .Address({1'b0, PC[30:0]}), // PC[31] can't be index
+        .addr({1'b0, PC[30:0]}), // PC[31] can't be index
         .data(Instruction));
 
     wire [31:0] DataBusA;
@@ -127,7 +127,7 @@ module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB
     wire [31:0] Branch; // output of ALUOut[0] mux
     output [31:0] ALUOut;
 
-    assign PC_plus_4 = {1'b0, PC[30:0] + 31'd4};
+    assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
     assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
 
@@ -172,6 +172,7 @@ module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB
     assign DataBusC = 
     	(MemtoReg[1:0] == 2'b00)? ALUOut :
     	(MemtoReg[1:0] == 2'b01)? DataOut :
-    	PC_plus_4;
+        (MemtoReg[1:0] == 2'b10)? PC_plus_4 :
+    	PC;
 
 endmodule

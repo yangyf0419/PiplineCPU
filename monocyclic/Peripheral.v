@@ -2,8 +2,9 @@
 
 //Interface
 
-module Peripheral (reset,clk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
-input reset,clk;
+module Peripheral (reset,timer_clk,sysclk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
+input reset,timer_clk;
+input sysclk;	// 50M clk
 input rd,wr;
 input [31:0] addr;
 input [31:0] wdata;
@@ -32,7 +33,7 @@ reg [7:0] UART_RXD;		//UART received data
 reg [4:0] UART_CON;		//UART control signal
 
 wire baudRate;		//baudrate
-BaudRateGenerator baud(.sysclk(clk),.BaudRate(baudRate));
+BaudRateGenerator baud(.sysclk(sysclk),.BaudRate(BaudRate));
 /************* end *************/
 
 //Because UART_TXD, UART_RXD and UART_CON signals shoudle be variables of reg type,
@@ -48,6 +49,7 @@ initial begin
 	mark_receiver = 0;
 	counter_receiver = 0;
 	start_receiver = 0;
+	UART_CON[4:0] <= 0;
 end
 
 always @(negedge reset or posedge BaudRate) begin
@@ -77,11 +79,10 @@ always @(negedge reset or posedge BaudRate) begin
 				8: if(mark_receiver == 8)	UART_RXD[7] <= rxd;	
 				9: begin
 						if(mark_receiver == 8) begin
-							UART_CON[3] <= 1
+							UART_CON[3] <= 1;
 							start_receiver = 0;
 							mark_receiver = 0;
 							counter_receiver = 0;
-							UART_RXD <= 8'b11111111;
 						end
 					end
 			endcase
@@ -114,8 +115,6 @@ initial begin
 	mark_transmitter = 0;
 	start_transmitter <= 0;
 	txd <= 1;
-	UART_CON[2] <= 0;
-	UART_CON[4] <= 0;
 end
 
 always @(negedge reset or posedge BaudRate) begin
@@ -194,7 +193,7 @@ always@(*) begin
 end
 
 //write outside register
-always@(negedge reset or posedge clk) begin
+always@(negedge reset or posedge timer_clk) begin
 	if(~reset) begin
 		TH <= 32'b0;
 		TL <= 32'b0;
