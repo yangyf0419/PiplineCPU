@@ -58,6 +58,8 @@ always @(negedge reset or posedge BaudRate) begin
 		UART_RXD <= 8'b11111111;
 	end
 	else begin
+		if(rd & ( addr == 32'h4000001C ))
+			UART_CON[3] <= 0;
 		if(start_receiver) begin
 			if(mark_receiver < 16) begin
 				mark_receiver = mark_receiver + 1;
@@ -126,6 +128,7 @@ always @(negedge reset or posedge BaudRate) begin
 		UART_CON[4] <= 0;
 	end
 	else begin
+		if(rd & (addr == 32'h40000018))		UART_CON[2] <= 0;
 		if(start_transmitter) begin
 			UART_CON[4] <= 1;
 			if(mark_transmitter < 16) begin
@@ -180,14 +183,8 @@ always@(*) begin
 			32'h4000000C: rdata <= {24'b0,led};			
 			32'h40000010: rdata <= {24'b0,switch};
 			32'h40000014: rdata <= {20'b0,digi};
-			32'h40000018: begin
-							rdata <= {24'b0,UART_TXD};
-							UART_CON[2] <= 0;
-						end
-			32'h4000001C: begin
-							rdata <= {24'b0,UART_RXD};
-							UART_CON[3] <= 0;
-						end
+			32'h40000018: rdata <= {24'b0,UART_TXD};
+			32'h4000001C: rdata <= {24'b0,UART_RXD};
 			32'h40000020: rdata <= {27'b0,UART_CON};
 			default: rdata <= 32'b0;
 		endcase
