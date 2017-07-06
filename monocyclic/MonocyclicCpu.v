@@ -1,15 +1,15 @@
 //MonocyclicCpu.v
 `timescale 1ns/1ns
 
-module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
+// MonocyclicCpu
+module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB);
     input reset;
     input clk;
-    output [7:0] led;
-    input [7:0] switch;
-    output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
+    output IRQ;
+
 
     //peripheral data
-    wire [31:0] PerData;
+    input [31:0] PerData;
 
     reg [31:0] PC;
     wire [31:0] PC_next;
@@ -27,7 +27,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
         .data(Instruction));
 
     wire [31:0] DataBusA;
-    wire [31:0] DataBusB;
+    output [31:0] DataBusB;
     wire [31:0] DataBusC;
 
     wire [4:0] Rd;
@@ -52,7 +52,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     parameter Ra = 5'd31; // function breakpoint register
 
     // control part
-    wire IRQ;
+    output IRQ;
     wire [2:0] PCSrc;
     wire [1:0] RegDst;
     wire RegWrite;
@@ -61,7 +61,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     wire [5:0] ALUFun;
     wire Sign;
     wire MemWrite;
-    wire MemRead;
+    output MemRead;
     wire [1:0] MemtoReg;
     wire ExtOp;
     wire LUOp;
@@ -122,7 +122,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
     wire [31:0] Branch; // output of ALUOut[0] mux
-    wire [31:0] ALUOut;
+    output [31:0] ALUOut;
 
     assign PC_plus_4 = {1'b0, PC[30:0] + 31'd4};
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
@@ -146,7 +146,7 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
 
     // data memory part
     wire MemWr;
-    wire PerWr; // PeripheralWrite
+    output PerWr; // PeripheralWrite
 
     wire [31:0] MemData;
     wire [31:0] DataOut;
@@ -163,26 +163,6 @@ module MonocyclicCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, 
     	.addr(ALUOut),
     	.wdata(DataBusB),
     	.rdata(MemData));
-
-    Peripheral prph(
-        .reset(reset),
-        .clk(clk),
-        .rd(MemRead),
-        .wr(PerWr),
-        .addr(ALUOut),
-        .wdata(DataBusB),
-        .rdata(PerData),
-        .led(led),
-        .switch(switch),
-        .digi(digi_in),
-        .irqout(IRQ));
-
-    digitube_scan dgt_sc(
-        .digi_in(digi_in),
-        .digi_out4(digi_out4),
-        .digi_out3(digi_out3),
-        .digi_out2(digi_out2),
-        .digi_out1(digi_out1));
 
     assign DataOut = ALUOut[30]? PerData : MemData;
 

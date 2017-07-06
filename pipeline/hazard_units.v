@@ -2,4 +2,45 @@
 // hazard_detection_unit, bypassing_unit
 
 
-module hazard_detection_unit();
+module hazard_detection_unit(ID_EX_MemRead,ID_EX_RegisterRt,IF_ID_RegisterRs,
+							 IF_ID_RegisterRt,IF_ID_Write,PC_Write,ctrl_Mux);
+
+input ID_EX_MemRead;
+input [4:0] ID_EX_RegisterRt,IF_ID_RegisterRs,IF_ID_RegisterRt;
+output IF_ID_Write,PC_Write,ctrl_Mux;
+
+assign IF_ID_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
+assign PC_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
+assign ctrl_Mux = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
+
+endmodule
+
+
+module bypassing_unit(ID_EX_RegisterRs,ID_EX_RegisterRt,
+					EX_MEM_RegisterRd,EX_MEM_RegWrite,
+					MEM_WB_RegisterRd,MEM_WB_RegWrite,
+					ForwardA,ForwardB);
+
+input [4:0] ID_EX_RegisterRs,ID_EX_RegisterRt,EX_MEM_RegisterRd,MEM_WB_RegisterRd;
+input EX_MEM_RegWrite,MEM_WB_RegWrite;
+output [1:0] ForwardA,ForwardB;
+
+assign ForwardA = 	// 2'b10
+					( EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd == ID_EX_RegisterRs) )? 2'b10:
+					// 2'b01
+					( MEM_WB_RegWrite & (MEM_WB_RegisterRd != 5'b0) 
+						& ~(EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd != ID_EX_RegisterRs))
+						& (MEM_WB_RegisterRd == ID_EX_RegisterRs) )? 2'b01:
+					// 2'b00
+					2'b00;
+
+assign ForwardB =	// 2'b10
+					( EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd == ID_EX_RegisterRt) )? 2'b10:
+					// 2'b01
+					( MEM_WB_RegWrite & (MEM_WB_RegisterRd != 5'b0) 
+						& ~(EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd != ID_EX_RegisterRt))
+						& (MEM_WB_RegisterRd == ID_EX_RegisterRt) )? 2'b01: 
+					// 2'b00
+					2'b00;
+
+endmodule

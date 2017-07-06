@@ -1,0 +1,88 @@
+// system.v
+// led, switch, digi_out1, digi_out2, digi_out3, digi_out4
+
+/*Peripheral prph(
+        .reset(reset),
+        .clk(clk),
+        .rd(MemRead),
+        .wr(PerWr),
+        .addr(ALUOut),
+        .wdata(DataBusB),
+        .rdata(PerData),
+        .led(led),
+        .switch(switch),
+        .digi(digi_in),
+        .irqout(IRQ));
+*/
+
+/*
+    digitube_scan dgt_sc(
+        .digi_in(digi_in),
+        .digi_out4(digi_out4),
+        .digi_out3(digi_out3),
+        .digi_out2(digi_out2),
+        .digi_out1(digi_out1));
+*/
+
+module system(sysclk, reset,
+				rxd,txd,
+				led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
+
+input sysclk,reset;
+
+// UART
+input rxd;
+output txd;
+
+// display part
+output [7:0] led;
+input [7:0] switch;
+wire [11:0] digi_in; //AN3,AN2,AN1,AN0,DP,CG,CF,CE,CD,CC,CB,CA
+output [6:0] digi_out1;	//0: CG,CF,CE,CD,CC,CB,CA
+output [6:0] digi_out2;	//1: CG,CF,CE,CD,CC,CB,CA
+output [6:0] digi_out3;	//2: CG,CF,CE,CD,CC,CB,CA
+output [6:0] digi_out4;	//3: CG,CF,CE,CD,CC,CB,CA
+
+// Peripheral wire
+wire MemRead;
+wire IRQ;
+wire [31:0] PerData;
+wire PerWr;
+wire [31:0] ALUOut;
+wire [31:0] DataBusB;
+
+wire clk;
+clkGenerator generator(.sysclk(sysclk),.reset(reset),.clk(clk));
+
+MonocyclicCpu MCPU(.reset(reset),
+				  .clk(clk),
+				  .PerData(PerData),
+				  .IRQ(IRQ),
+				  .MemRead(MemRead),
+				  .PerWr(PerWr),
+				  .ALUOut(ALUOut),
+				  .DataBusB(DataBusB));
+
+Peripheral prph(
+        .reset(reset),
+        .clk(clk),
+        .rd(MemRead),
+        .wr(PerWr),
+        .addr(ALUOut),
+        .wdata(DataBusB),
+        .rdata(PerData),
+        .led(led),
+        .switch(switch),
+        .digi(digi_in),
+        .irqout(IRQ),
+        .rxd(rxd),
+        .txd(txd));
+
+digitube_scan dgt_sc(
+        .digi_in(digi_in),
+        .digi_out4(digi_out4),
+        .digi_out3(digi_out3),
+        .digi_out2(digi_out2),
+        .digi_out1(digi_out1));
+
+endmodule

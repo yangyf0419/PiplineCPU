@@ -1,6 +1,17 @@
 //PipelineCpu.v
 `timescale 1ns/1ns
 
+module clkGenerator (sysclk,clk);
+input sysclk;
+output clk;
+integer counter;
+
+initial begin
+    counter = 0;
+end
+
+endmodule
+
 module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
     input reset;
     input clk;
