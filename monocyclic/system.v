@@ -65,7 +65,7 @@ MonocyclicCpu MCPU(.reset(reset),
 				  .DataBusB(DataBusB),
                   .PC_31(PC_31));
 
-Peripheral prph(
+Peripheral1 prph(
         .reset(reset),
         .timer_clk(clk),
         .sysclk(sysclk),
