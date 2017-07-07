@@ -399,7 +399,7 @@ def analyzeGrammar(line:(int, (str, str)), label:dict): #generate machine code
     elif opr == 'j':
         opcode = "6'b000010"
         label_index = str(label.get(ins[0]))
-        if not label_index:
+        if label_index == 'None':
             raise KeyError('unknown label ' + ins[0])
         instr_index = dec2bin(label_index, 26)
         mcode = '{' + ', '.join([opcode, instr_index]) + '}'
@@ -407,7 +407,7 @@ def analyzeGrammar(line:(int, (str, str)), label:dict): #generate machine code
     elif opr == 'jal':
         opcode = "6'b000011"
         label_index = str(label.get(ins[0]))
-        if not label_index:
+        if label_index == 'None':
             raise KeyError('unknown label ' + ins[0])
         instr_index = dec2bin(label_index, 26)
         mcode = '{' + ', '.join([opcode, instr_index]) + '}'
