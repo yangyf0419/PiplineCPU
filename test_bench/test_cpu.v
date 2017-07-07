@@ -18,9 +18,10 @@ module test_cpu();
 
 	
 	initial begin
-		reset = 0;
+		reset = 1;
+        #1 reset = 0;
 		clk = 0;
-		#2 reset = 1;
+		#1 reset = 1;
 	end
 
 	initial begin
