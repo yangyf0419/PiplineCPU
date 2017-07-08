@@ -86,10 +86,10 @@ module Control(OpCode, Funct, IRQ,
 
     assign MemtoReg =
         IRQ? 2'b11 :
-        exception? 2'b10 :
-        (OpCode == 6'h23)? 2'b01: // lw
-        (OpCode == 6'h03 || // jal
+        (exception ||
+        OpCode == 6'h03 || // jal
         (OpCode == 6'h00 && Funct == 6'h09))? 2'b10: // jalr
+        (OpCode == 6'h23)? 2'b01: // lw
         2'b00;
 
     assign ALUSrc1 = 
