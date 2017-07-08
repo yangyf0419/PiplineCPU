@@ -2,7 +2,7 @@
 
 //Interface
 
-module Peripheral1 (reset,timer_clk,sysclk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
+module Peripheral (reset,timer_clk,sysclk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
 input reset,timer_clk;
 input sysclk;   // 50M clk
 input rd,wr;
@@ -48,7 +48,7 @@ always @ (negedge reset or posedge bclk) begin
         UART_RXD <= 8'h0;
     end
     else if (UART_CON[1]) begin
-        counter <= counter + 1; 
+        counter <= counter + 4'h1; 
         if (~rxd && ~data_received) begin
             counter[3:0] <= 4'h0;
             data_received <= 1;
@@ -83,7 +83,7 @@ always @ (negedge reset or posedge clk9600) begin
         else if (UART_CON[4]) begin
             if (labeltx == 8) begin
                 txd <= 1;
-                labeltx <= labeltx + 1;
+                labeltx <= labeltx + 4'h1;
             end
             else if (labeltx == 9) begin
                 labeltx <= 4'hf;
@@ -92,7 +92,7 @@ always @ (negedge reset or posedge clk9600) begin
             else if (labeltx == 4'hf);
             else begin
                 txd <= UART_TXD[labeltx];
-                labeltx <= labeltx + 1;
+                labeltx <= labeltx + 4'h1;
             end
         end
     end
@@ -149,7 +149,9 @@ always@(negedge reset or posedge timer_clk) begin
     if(~reset) begin
         TH <= 32'b0;
         TL <= 32'b0;
-        TCON <= 3'b0;   
+        TCON <= 3'b0;  
+        led <= 8'h0; 
+        digi <= 12'h0;
     end
     else begin
         if(TCON[0]) begin   //timer is enabled

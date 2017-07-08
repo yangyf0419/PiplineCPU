@@ -12,7 +12,7 @@ module baud_rate_generator(sysclk, bclk, clk9600, resetb);
             clk9600 <= 1;
         end
         else begin
-            count16 <= count16 + 1;
+            count16 <= count16 + 4'h1;
             if (count16 == 7) begin
                 clk9600 = ~clk9600;
                 count16 <= 4'h0;
@@ -26,7 +26,7 @@ module baud_rate_generator(sysclk, bclk, clk9600, resetb);
             bclk <= 1;
         end
         else begin
-            count <= count + 1;
+            count <= count + 9'h1;
             if (count == 163) begin
                 bclk = ~bclk;
                 count <= 9'h0;
