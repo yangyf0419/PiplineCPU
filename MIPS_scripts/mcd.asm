@@ -40,9 +40,9 @@ sw $t0, 32($t9) # stop receiving
 lw $a0, 28($t9) # first Number
 # line 10
 andi $t0, $a0, 15 # low 4 bit of first number
-sw $t0, 76($zero)
-srl $t0, $a0, 4 # high 4 bit of first number
 sw $t0, 72($zero)
+srl $t0, $a0, 4 # high 4 bit of first number
+sw $t0, 76($zero)
 
 sw $s7, 32($t9) # enable UART_RX
 get_second:
@@ -54,12 +54,12 @@ sw $t0, 32($t9) # stop receiving
 # line 20
 lw $a1, 28($t9) # second number
 andi $t0, $a1, 15 # low 4 bit of second number
-sw $t0, 68($zero)
-srl $t0, $a1, 4 # high 4 bit of second number
 sw $t0, 64($zero)
+srl $t0, $a1, 4 # high 4 bit of second number
+sw $t0, 68($zero)
 
 # start the timer
-addi $t0, $zero, -20
+addi $t0, $zero, -50
 sw $t0, 0($t9)
 addi $t0, $zero, -1
 sw $t0, 4($t9)
