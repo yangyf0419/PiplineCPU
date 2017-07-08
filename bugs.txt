@@ -5,3 +5,4 @@ sysclk, cpuclk, uartclk, timerclk问题
 对UART-RXD的清空应在接收使能被置为1时发生，之前沿用UART时没有考虑到UART和本实验的区别，导致了每一次接受完直接清空，CPU可能读不到数据
 DataMem开太大，放不下
 缩减rom和Datamem后，编译速度明显加快
+IRQ将input写为output，modelsim不提示
