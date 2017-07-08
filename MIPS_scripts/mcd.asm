@@ -87,7 +87,8 @@ waiting:
 lw $t0, 32($t9) # get UART_CON
 andi $t1, $t0, 4 # get UART_CON[2]
 beq $t1, $zero, waiting # if !TX_Status, keep on
-sw $t0, 32($t9) # stop sending
+lw $t0, 24($t9)
+sw $zero, 32($t9) # stop sending
 
 j begin
 
