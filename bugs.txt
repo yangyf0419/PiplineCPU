@@ -6,3 +6,4 @@ sysclk, cpuclk, uartclk, timerclk问题
 DataMem开太大，放不下
 缩减rom和Datamem后，编译速度明显加快
 IRQ将input写为output，modelsim不提示
+本来UART_TX的发送数据取了也没用，但不取就没法把UART_CON[2]情空，导致之后没法发送，因此得加一步取操作
