@@ -399,7 +399,7 @@ def analyzeGrammar(line:(int, (str, str)), label:dict): #generate machine code
     elif opr == 'j':
         opcode = "6'b000010"
         label_index = str(label.get(ins[0]))
-        if not label_index:
+        if label_index == 'None':
             raise KeyError('unknown label ' + ins[0])
         instr_index = dec2bin(label_index, 26)
         mcode = '{' + ', '.join([opcode, instr_index]) + '}'
@@ -407,7 +407,7 @@ def analyzeGrammar(line:(int, (str, str)), label:dict): #generate machine code
     elif opr == 'jal':
         opcode = "6'b000011"
         label_index = str(label.get(ins[0]))
-        if not label_index:
+        if label_index == 'None':
             raise KeyError('unknown label ' + ins[0])
         instr_index = dec2bin(label_index, 26)
         mcode = '{' + ', '.join([opcode, instr_index]) + '}'
@@ -551,7 +551,7 @@ for path in sys.argv[1:]:
         lines, index = processLines(lines)
         lines = list(map(getOpr, lines))
         lines = list(map(lambda x: analyzeGrammar(x, index), list(enumerate(lines))))
-        lines = ["16'd" + str(index) + ": data <= " + line + ";" for index, line in enumerate(lines)]
+        lines = ["7'd" + str(index) + ": data <= " + line + ";" for index, line in enumerate(lines)]
         with open(name + '.mcc', 'w') as f:
             f.write('\n'.join(lines))
     else:

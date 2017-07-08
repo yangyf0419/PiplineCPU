@@ -5,7 +5,7 @@
 module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB, PC_31);
     input reset;
     input clk;
-    output IRQ;
+    input IRQ;
     output PC_31;
 
 
@@ -55,7 +55,6 @@ module MonocyclicCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB
     parameter Ra = 5'd31; // function breakpoint register
 
     // control part
-    output IRQ;
     wire [2:0] PCSrc;
     wire [1:0] RegDst;
     wire RegWrite;

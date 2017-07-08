@@ -5,8 +5,8 @@
 # $a0(4) - First Input Number
 # $a1(5) - Second Input Number
 #
-# $s3(19) - A Mask to Reset Digitube - 8'h00000800
-# $s4(20) - A Mask to Control Digitube - 8'h00000080
+# $s3(19) - Digitube bit
+# $s4(20) - A Mask to Control Digitube - 8'h00000100
 # $s5(21) - A Mask to Set TCON[1:0] to 11 - 8'h00000003
 # $s6(22) - A Mask to Set UART_CON[0] to 1 - 8'h00000001
 # $s7(23) - A Mask to Set UART_CON[1]/TCON[1] to 1 - 8'h00000002
@@ -40,9 +40,9 @@ sw $t0, 32($t9) # stop receiving
 lw $a0, 28($t9) # first Number
 # line 10
 andi $t0, $a0, 15 # low 4 bit of first number
-sw $t0, 128($zero)
+sw $t0, 72($zero)
 srl $t0, $a0, 4 # high 4 bit of first number
-sw $t0, 256($zero)
+sw $t0, 76($zero)
 
 sw $s7, 32($t9) # enable UART_RX
 get_second:
@@ -54,12 +54,12 @@ sw $t0, 32($t9) # stop receiving
 # line 20
 lw $a1, 28($t9) # second number
 andi $t0, $a1, 15 # low 4 bit of second number
-sw $t0, 512($zero)
+sw $t0, 64($zero)
 srl $t0, $a1, 4 # high 4 bit of second number
-sw $t0, 1024($zero)
+sw $t0, 68($zero)
 
 # start the timer
-addi $t0, $zero, -5000000
+addi $t0, $zero, -50
 sw $t0, 0($t9)
 addi $t0, $zero, -1
 sw $t0, 4($t9)
@@ -99,9 +99,9 @@ lui $k1, 32768 # $k1 = 8'h80000000
 lui $t9, 16384 # $t9 = 8'h40000000
 addi $s7, $zero, 2 # $s7 = 8'h00000002
 addi $s6, $zero, 1 # $s6 = 8'h00000001
+# line 50
 addi $s5, $zero, 3 # $s5 = 8'h00000003
-addi $s4, $zero, 128 # $s4 = 8'h00000080
-addi $s3, $zero, 2048 # $s3 = 8'h00000800
+addi $s4, $zero, 16 # $s4 = 16
 
 # Use Data Memory as BCD Module
 # 7'b1000000
@@ -116,6 +116,7 @@ sw $t0, 8($zero)
 # 7'b0110000
 addi $t0, $zero, 48
 sw $t0, 12($zero)
+# line 60
 # 7'b0011001
 addi $t0, $zero, 25
 sw $t0, 16($zero)
@@ -132,6 +133,7 @@ sw $t0, 28($zero)
 sw $zero, 32($zero)
 # 7'b0010000
 addi $t0, $zero, 16
+# line 70
 sw $t0, 36($zero)
 # 7'b0001000
 addi $t0, $zero, 8
@@ -147,10 +149,21 @@ addi $t0, $zero, 33
 sw $t0, 52($zero)
 # 7'b0000110
 addi $t0, $zero, 6
+# line 80
 sw $t0, 56($zero)
 # 7'b0001110
 addi $t0, $zero, 14
 sw $t0, 60($zero)
+
+addi $t0, $zero, 256
+sw $t0, 80($zero)
+addi $t0, $zero, 512
+sw $t0, 84($zero)
+addi $t0, $zero, 1024
+sw $t0, 88($zero)
+addi $t0, $zero, 2048
+# line 90
+sw $t0, 92($zero)
 
 jr $ra # begin the normal program
 #----------- end -----------#
@@ -160,13 +173,16 @@ interruption:
 lw $k1, 8($t9) # get TCON
 andi $k1, $k1, -7
 sw $k1, 8($t9) # stop timer
-lw $k1, 0($s4) # get 4-bit number to be showed
+lw $s3, 76($s4) # get control bit
+lw $k1, 60($s4) # get 4-bit number to be showed
+sll $k1, $k1, 2
 lw $k1, 0($k1) # interpret the 4-bit number into 7-bit digitube level
-add $k1, $k1, $s4 # use $k1 to control digitube at 0x40000014
+add $k1, $k1, $s3 # use $k1 to control digitube at 0x40000014
+# line 100
 sw $k1, 20($t9)
-sll $s4, $s4, 1 # adjust the mask to get digitube
-bne $s4, $s3, jump_one # if $s4 has been left-shifted 4 times
-srl $s4, $s4, 4 # then shift back
+addi $s4, $s4, -4 # adjust the mdigitube address
+bne $s4, $zero, jump_one # if $s4 has been substracted 4 times
+addi $s4, $s4, 16 # then add back
 jump_one:
 lw $k1, 8($t9) # get TCON
 or $k1, $k1, $s7
