@@ -66,7 +66,7 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     assign JT = ID_Instruction[25:0];
     assign Shamt = ID_Instruction[10:6];
     assign OpCode = ID_Instruction[31:26];
-    assign Funct = IDInstruction[5:0];
+    assign Funct = ID_Instruction[5:0];
 
     parameter Xp = 5'd26; // exception register
     parameter Ra = 5'd31; // function breakpoint register
@@ -107,7 +107,6 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
 
     /***** Integrating the control signals according to the stages where they work ****/
     /******************** begin ********************/
-
     wire [2:0] WB_ctrlSignal;
     wire [1:0] MEM_ctrlSignal;
     wire [15:0] EX_ctrlSignal;
@@ -125,7 +124,6 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
 
     // whole_ctrlSignal[20:18]=WB_ctrlSignal, whole_ctrlSignal[17:16]=MEM_ctrlSignal, whole_ctrlSignal[15:0]=EX_ctrlSignal
     assign whole_ctrlSignal = {WB_ctrlSignal,MEM_ctrlSignal,EX_ctrlSignal};
-
     /******************** end ********************/
 
     // Register 

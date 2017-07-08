@@ -31,12 +31,13 @@ always @(posedge sysclk or negedge reset) begin
 		Instruction_reg <= 32'b0;
 	end
 	else begin
-		ID_Instruction <= Instruction_reg;
 		if(Hazard_Detection) 
 			Instruction_reg <= 32'b0;
+			ID_Instruction <= 32'b0;
 		else
 			Instruction_reg <= IF_Instruction;
-		PC_reg <= PC_next;
+			ID_Instruction <= Instruction_reg;
+		PC_reg <= IF_PC;
 		ID_PC <= PC_reg;
 	end
 end
