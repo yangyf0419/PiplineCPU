@@ -6,7 +6,7 @@ module ALU(A, B, ALUFun, Sign, Z);
     input Sign;
     output reg [31:0] Z;
 
-    wire heads;
+    wire [1:0] heads;
     assign heads = {A[31], B[31]}; // sign bit of A & B
 
     wire tailCmp;

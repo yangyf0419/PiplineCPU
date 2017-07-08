@@ -109,6 +109,10 @@ module Control_c(OpCode, Funct, IRQ,
         case (OpCode)
             6'h00: ALUSrc2 <= 1'b0; // R type, jr, jalr
             6'h04: ALUSrc2 <= 1'b0; // beq
+            6'h05: ALUSrc2 <= 1'b0; // bne
+            6'h06: ALUSrc2 <= 1'b0; // blez
+            6'h07: ALUSrc2 <= 1'b0; // bgtz
+            6'h01: ALUSrc2 <= 1'b0; // bltz
             default: ALUSrc2 <= 1'b1;
         endcase
         case ({OpCode, Funct})
