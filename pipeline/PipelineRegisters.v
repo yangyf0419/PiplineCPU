@@ -10,26 +10,25 @@ The interfaces of each module are arranged the way as follows:
 
 // IF/ID Register
 module IF_ID_Register(sysclk,reset,
-					Hazard_Detection,PC_next,IF_Instruction,
-					ID_Instruction,PC);
+					Hazard_Detection,IF_PC,IF_Instruction,
+					ID_Instruction,ID_PC);
 
 input sysclk,reset;
 input Hazard_Detection;		//To deal with branch and jump instructions
 input [31:0] IF_Instruction;
-input [31:0] PC_next;
+input [31:0] IF_PC;
 output reg [31:0] ID_Instruction;
-output reg [31:0] PC;
+output reg [31:0] ID_PC;
 
 reg [31:0] Instruction_reg;
 reg [31:0] PC_reg;
 reg [31:0] ID_Instruction;
-reg [31:0] PC;
+reg [31:0] ID_PC;
 
 always @(posedge sysclk or negedge reset) begin
 	if (~reset) begin
-		PC_reg <= 32'b0;
+		PC_reg <= 32'h80000000;
 		Instruction_reg <= 32'b0;
-		PC <= 32'h80000000;
 	end
 	else begin
 		ID_Instruction <= Instruction_reg;
@@ -38,7 +37,7 @@ always @(posedge sysclk or negedge reset) begin
 		else
 			Instruction_reg <= IF_Instruction;
 		PC_reg <= PC_next;
-		PC <= PC_reg;
+		ID_PC <= PC_reg;
 	end
 end
 
@@ -159,19 +158,22 @@ endmodule
 
 // MEM/WB Register
 module MEM_WB_Register(sysclk,reset,
-						MEM_ALUOut,EX_MEM_WB_ctrlSignal,EX_MEM_RegisterRd,ReadData,
-						WB_ctrlSignal,ReadData_Out,WB_ALUOut,MEM_WB_RegisterRd);
+						MEM_ALUOut,EX_MEM_WB_ctrlSignal,EX_MEM_RegisterRd,ReadData,AddrC_in
+						WB_ctrlSignal,ReadData_Out,WB_ALUOut,MEM_WB_RegisterRd,AddrC_out);
 
 input sysclk,reset;		
 input [31:0] MEM_ALUOut;
 input [2:0] EX_MEM_WB_ctrlSignal;
 input [4:0] EX_MEM_RegisterRd;
 input [31:0] ReadData;
+input [4:0] AddrC_in;
 output reg [31:0] ReadData_Out;
 output reg [4:0] MEM_WB_RegisterRd;
 output reg [2:0] WB_ctrlSignal;
 output reg [31:0] WB_ALUOut;
+output reg [4:0] AddrC_out;
 
+reg [4:0] AddrC_reg;
 reg [31:0] ReadData_reg;
 reg [4:0] Rd_reg;
 reg [2:0] WB_ctrlSignal_reg;
@@ -183,6 +185,7 @@ always @(posedge sysclk or negedge reset) begin
 		Rd_reg <= 5'b0;
 		WB_ctrlSignal_reg <= 3'b0;
 		ALUOut_reg <= 32'b0;
+		AddrC_reg <= 5'b0;
 	end
 	else begin
 		ReadData_reg <= ReadData;
@@ -196,6 +199,9 @@ always @(posedge sysclk or negedge reset) begin
 
 		ALUOut_reg <= MEM_ALUOut;
 		WB_ALUOut <= ALUOut_reg;
+
+		AddrC_reg <= AddrC_in;
+		AddrC_out <= AddrC_reg;
 	end
 end
 

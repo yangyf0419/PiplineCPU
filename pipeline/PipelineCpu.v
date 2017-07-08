@@ -1,16 +1,6 @@
 //PipelineCpu.v
 `timescale 1ns/1ns
 
-module clkGenerator (sysclk,clk);
-input sysclk;
-output clk;
-integer counter;
-
-initial begin
-    counter = 0;
-end
-
-endmodule
 
 module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
     input reset;
@@ -22,6 +12,8 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     //peripheral data
     wire [31:0] PerData;
 
+    /******************** IF part ********************/
+    /******************** begin ********************/
     reg [31:0] PC;
     wire [31:0] PC_next;
     always @(posedge clk or negedge reset) begin
@@ -32,11 +24,28 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     end
 
     // instruction memory part
-    wire [31:0] Instruction;
+    wire [31:0] IF_Instruction;
     ROM rom(
         .Address({1'b0, PC[30:0]}), // PC[31] can't be index
         .data(Instruction));
+    /******************** end ********************/
 
+
+    /******************** joint *******************/
+    wire [31:0] ID_Instruction;
+    wire [31:0] ID_PC;
+    IF_ID_Register RegisterI(.sysclk(clk),
+                            .reset(reset),
+                            .Hazard_Detection(hazard),
+                            .IF_PC(PC),
+                            .IF_Instruction(IF_Instruction),
+                            .ID_Instruction(ID_Instruction),
+                            .ID_PC(ID_PC));
+    /******************** end ********************/
+
+
+    /******************** ID part ********************/
+    /******************** begin ********************/
     wire [31:0] DataBusA;
     wire [31:0] DataBusB;
     wire [31:0] DataBusC;
@@ -50,14 +59,14 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     wire [5:0] OpCode;
     wire [5:0] Funct;
 
-    assign Rd = Instruction[15:11];
-    assign Rt = Instruction[20:16];
-    assign Rs = Instruction[25:21];
-    assign Imm16 = Instruction[15:0];
-    assign JT = Instruction[25:0];
-    assign Shamt = Instruction[10:6];
-    assign OpCode = Instruction[31:26];
-    assign Funct = Instruction[5:0];
+    assign Rd = ID_Instruction[15:11];
+    assign Rt = ID_Instruction[20:16];
+    assign Rs = ID_Instruction[25:21];
+    assign Imm16 = ID_Instruction[15:0];
+    assign JT = ID_Instruction[25:0];
+    assign Shamt = ID_Instruction[10:6];
+    assign OpCode = ID_Instruction[31:26];
+    assign Funct = IDInstruction[5:0];
 
     parameter Xp = 5'd26; // exception register
     parameter Ra = 5'd31; // function breakpoint register
@@ -119,14 +128,7 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
 
     /******************** end ********************/
 
-    // register part
-    wire [4:0] AddrC;
-    assign AddrC = 
-        (RegDst == 2'b00)? Rt : 
-        (RegDst == 2'b01)? Rd :
-        (RegDst == 2'b10)? Ra :
-        Xp;
-
+    // Register 
     RegFile rgf(
         .reset(reset),
         .clk(clk),
