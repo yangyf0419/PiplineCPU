@@ -1,33 +1,35 @@
 //PipelineCpu.v
 `timescale 1ns/1ns
 
-
-module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
+// PipelineCpu
+module PipelineCpu (reset, clk, PerData, IRQ, MemRead, PerWr, ALUOut, DataBusB, PC_31);
     input reset;
     input clk;
-    output [7:0] led;
-    input [7:0] switch;
-    output [6:0] digi_out1, digi_out2, digi_out3, digi_out4;
+    input IRQ;
+    output PC_31;
+
 
     //peripheral data
-    wire [31:0] PerData;
+    input [31:0] PerData;
 
     /******************** IF part ********************/
     /******************** begin ********************/
+    wire PC_Write;
     reg [31:0] PC;
     wire [31:0] PC_next;
     always @(posedge clk or negedge reset) begin
         if (~reset)
             PC <= 32'h80000000;
-        else 
+        else if(PC_Write)
             PC <= PC_next;
     end
 
+    assign PC_31 = PC[31];
     // instruction memory part
     wire [31:0] IF_Instruction;
     ROM rom(
-        .Address({1'b0, PC[30:0]}), // PC[31] can't be index
-        .data(Instruction));
+        .addr({1'b0, PC[30:0]}), // PC[31] can't be index
+        .data(IF_Instruction));
     /******************** end ********************/
 
 
@@ -47,7 +49,7 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     /******************** ID part ********************/
     /******************** begin ********************/
     wire [31:0] DataBusA;
-    wire [31:0] DataBusB;
+    output [31:0] DataBusB;
     wire [31:0] DataBusC;
 
     wire [4:0] Rd;
@@ -72,7 +74,6 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     parameter Ra = 5'd31; // function breakpoint register
 
     // control part
-    wire IRQ;
     wire [2:0] PCSrc;
     wire [1:0] RegDst;
     wire RegWrite;
@@ -81,7 +82,7 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     wire [5:0] ALUFun;
     wire Sign;
     wire MemWrite;
-    wire MemRead;
+    output MemRead;
     wire [1:0] MemtoReg;
     wire ExtOp;
     wire LUOp;
@@ -103,7 +104,6 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
         .ExtOp(ExtOp),
         .LuOp(LUOp));
 
-    
     /***** Integrating the control signals according to the stages where they work ****/
     /******************** begin ********************/
     wire [2:0] WB_ctrlSignal;
@@ -125,7 +125,22 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     assign whole_ctrlSignal = {WB_ctrlSignal,MEM_ctrlSignal,EX_ctrlSignal};
     /******************** end ********************/
 
-    // Register 
+    wire ctrl_Mux;
+    wire [20:0] sent_to_Register_ctrlSignal;
+
+    hazard_detection_unit hazard_unit(.ID_EX_MemRead(ID_EX_MemRead),
+                                    .ID_EX_RegisterRt(ID_EX_RegisterRt),
+                                    .IF_ID_RegisterRs(Rs),
+                                    .IF_ID_RegisterRt(Rt),
+                                    .IF_ID_Write(IF_ID_Write),
+                                    .PC_Write(PC_Write),
+                                    .ctrl_Mux(ctrl_Mux));
+
+    assign sent_to_Register_ctrlSignal = ctrl_Mux? whole_ctrlSignal: 21'b0;
+
+    // register part
+    wire [4:0] AddrC;
+
     RegFile rgf(
         .reset(reset),
         .clk(clk),
@@ -137,12 +152,28 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
         .addr3(AddrC),
         .data3(DataBusC));
 
+    
+
+
+
+    // waiting to confirmed
+    assign AddrC = 
+        (RegDst == 2'b00)? Rt : 
+        (RegDst == 2'b01)? Rd :
+        (RegDst == 2'b10)? Ra :
+        Xp;
+
+    
+
     // immediate number process parts
     wire [31:0] Ext_out; // output of EXTOp module
     assign Ext_out = {ExtOp? {16{Imm16[15]}} : 16'h0000, Imm16};
 
     wire [31:0] LU_out; // output of LUOp mux
     assign LU_out = (LUOp)? {Imm16, 16'h0000} : Ext_out;
+
+    wire [31:0] PC_plus_4;
+    assign PC_plus_4 = {PC[31], PC[30:0] + 31'd4};
 
     // input of ALU
     wire [31:0] input_A;
@@ -152,14 +183,14 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     assign input_B = (ALUSrc2)? LU_out : DataBusB;
 
     // program counter part
-    wire [31:0] PC_plus_4;
+    
     wire [31:0] ConBA;
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
     wire [31:0] Branch; // output of ALUOut[0] mux
-    wire [31:0] ALUOut;
+    output [31:0] ALUOut;
 
-    assign PC_plus_4 = {1'b0, PC[30:0] + 31'd4};
+    
     assign Branch = ALUOut[0]? ConBA : PC_plus_4;
     assign ConBA = {PC[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
 
@@ -181,7 +212,7 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
 
     // data memory part
     wire MemWr;
-    wire PerWr; // PeripheralWrite
+    output PerWr; // PeripheralWrite
 
     wire [31:0] MemData;
     wire [31:0] DataOut;
@@ -199,31 +230,12 @@ module PipelineCpu (reset, clk, led, switch, digi_out1, digi_out2, digi_out3, di
     	.wdata(DataBusB),
     	.rdata(MemData));
 
-    Peripheral prph(
-        .reset(reset),
-        .clk(clk),
-        .rd(MemRead),
-        .wr(PerWr),
-        .addr(ALUOut),
-        .wdata(DataBusB),
-        .rdata(PerData),
-        .led(led),
-        .switch(switch),
-        .digi(digi_in),
-        .irqout(IRQ));
-
-    digitube_scan dgt_sc(
-        .digi_in(digi_in),
-        .digi_out4(digi_out4),
-        .digi_out3(digi_out3),
-        .digi_out2(digi_out2),
-        .digi_out1(digi_out1));
-
     assign DataOut = ALUOut[30]? PerData : MemData;
 
     assign DataBusC = 
     	(MemtoReg[1:0] == 2'b00)? ALUOut :
     	(MemtoReg[1:0] == 2'b01)? DataOut :
-    	PC_plus_4;
+        (MemtoReg[1:0] == 2'b10)? PC_plus_4 :
+    	PC;
 
 endmodule

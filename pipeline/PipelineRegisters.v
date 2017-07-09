@@ -9,12 +9,13 @@ The interfaces of each module are arranged the way as follows:
 */
 
 // IF/ID Register
-module IF_ID_Register(sysclk,reset,
+module IF_ID_Register(sysclk,reset,IF_ID_Write
 					Hazard_Detection,IF_PC,IF_Instruction,
 					ID_Instruction,ID_PC);
 
 input sysclk,reset;
-input Hazard_Detection;		//To deal with branch and jump instructions
+input IF_ID_Write;		// solve the problem of hazard
+//input Hazard_Detection;		//To deal with branch and jump instructions
 input [31:0] IF_Instruction;
 input [31:0] IF_PC;
 output reg [31:0] ID_Instruction;
@@ -31,12 +32,14 @@ always @(posedge sysclk or negedge reset) begin
 		Instruction_reg <= 32'b0;
 	end
 	else begin
-		if(Hazard_Detection) 
+		if(IF_ID_Write)		Instruction_reg <= IF_Instruction;
+		ID_Instruction <= Instruction_reg;
+		/*if(Hazard_Detection) 
 			Instruction_reg <= 32'b0;
 			ID_Instruction <= 32'b0;
 		else
 			Instruction_reg <= IF_Instruction;
-			ID_Instruction <= Instruction_reg;
+			ID_Instruction <= Instruction_reg;*/
 		PC_reg <= IF_PC;
 		ID_PC <= PC_reg;
 	end
@@ -46,11 +49,12 @@ endmodule
 
 
 // ID/EX Register
-module ID_EX_Register(sysclk,reset,
+module ID_EX_Register(sysclk,reset,flush
 					wholeSignal,IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd,input_DataBusA,input_DataBusB,
 					EX_ctrlSignal,WB_ctrlSignal,MEM_ctrlSignal,Rs,Rt,Rd,output_DataBusA,output_DataBusB);
 
 input sysclk,reset;		
+input flush;	// deal with branch hazzard
 input [20:0] wholeSignal;	//the whole control signal
 input [4:0] IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd;
 input [31:0] input_DataBusA,input_DataBusB;

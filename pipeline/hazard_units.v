@@ -6,14 +6,19 @@ module hazard_detection_unit(ID_EX_MemRead,ID_EX_RegisterRt,IF_ID_RegisterRs,
 							 IF_ID_RegisterRt,IF_ID_Write,PC_Write,ctrl_Mux);
 
 input ID_EX_MemRead;
+/*input EX_PCSrc[2:0];	// EX_PCSrc is used to tell whether the intruction at EX stage is branch
+input EX_ALUOut;	// tell whether Branch happens*/
 input [4:0] ID_EX_RegisterRt,IF_ID_RegisterRs,IF_ID_RegisterRt;
 output IF_ID_Write,PC_Write,ctrl_Mux;
+//output flush;	// stall the pipeline when the instruction is of "branch" type
 
 assign IF_ID_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
 assign PC_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
 assign ctrl_Mux = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
+//assign flush = ( (EX_PCSrc == 3'b001) & EX_ALUOut );
 
 endmodule
+
 
 
 module bypassing_unit(ID_EX_RegisterRs,ID_EX_RegisterRt,
@@ -44,3 +49,4 @@ assign ForwardB =	// 2'b10
 					2'b00;
 
 endmodule
+
