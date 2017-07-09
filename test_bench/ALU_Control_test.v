@@ -17,7 +17,7 @@ module test;
         .Sign(Sign),
         .ALUFun(ALUFun));
 
-    ALU alu(
+    ALU_n alu(
         .ALUFun(ALUFun),
         .A(Data_A),
         .B(Data_B),
