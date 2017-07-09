@@ -1,6 +1,7 @@
 // hazard_units.v
 // hazard_detection_unit, bypassing_unit
 
+// check
 
 module hazard_detection_unit(ID_EX_MemRead,ID_EX_RegisterRt,IF_ID_RegisterRs,
 							 IF_ID_RegisterRt,IF_ID_Write,PC_Write,ctrl_Mux);
