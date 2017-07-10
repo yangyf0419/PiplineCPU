@@ -5,9 +5,9 @@
 addi $s1, $zero, 1
 addi $s2, $zero, 2
 addi $s3, $zero, 3
-lw $s1, 0($zero)
-lw $s2, 4($zero)
-lw $s3, 8($zero)
+lw $s1, 4($zero)
+lw $s2, 8($zero)
+lw $s3, 12($zero)
 
 # data hazard & structure hazard
 # reference @ textbook P120 - P124

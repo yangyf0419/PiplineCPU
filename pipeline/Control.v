@@ -1,12 +1,13 @@
 // Control.v
 // case based
-module Control(OpCode, Funct, IRQ, 
+module Control(OpCode, Funct, IRQ,
     PCSrc, Sign, RegWrite, RegDst, 
     MemRead, MemWrite, MemtoReg, 
     ALUSrc1, ALUSrc2, ExtOp, LuOp, ALUFun);
     input [5:0] OpCode;
     input [5:0] Funct;
     input IRQ; // external interruption
+
     output [2:0] PCSrc;
     output Sign;
     output RegWrite;
@@ -86,10 +87,10 @@ module Control(OpCode, Funct, IRQ,
 
     assign MemtoReg =
         IRQ? 2'b11 :
-        exception? 2'b10 :
-        (OpCode == 6'h23)? 2'b01: // lw
-        (OpCode == 6'h03 || // jal
+        (exception ||
+        OpCode == 6'h03 || // jal
         (OpCode == 6'h00 && Funct == 6'h09))? 2'b10: // jalr
+        (OpCode == 6'h23)? 2'b01: // lw
         2'b00;
 
     assign ALUSrc1 = 

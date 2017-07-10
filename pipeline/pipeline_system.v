@@ -24,7 +24,7 @@
         .digi_out1(digi_out1));
 */
 
-module system(sysclk, reset,
+module pipeline_system(sysclk, reset,
 				rxd,txd,
 				led, switch, digi_out1, digi_out2, digi_out3, digi_out4);
 
@@ -55,14 +55,14 @@ wire PC_31;
 wire clk;
 clkGenerator generator(.sysclk(sysclk),.reset(reset),.clk(clk));
 
-MonocyclicCpu MCPU(.reset(reset),
+PipelineCpu PCPU(.reset(reset),
 				  .clk(clk),
 				  .PerData(PerData),
 				  .IRQ(IRQ),
-				  .MemRead(MemRead),
+				  .MEM_MemRead(MemRead),
 				  .PerWr(PerWr),
-				  .ALUOut(ALUOut),
-				  .DataBusB(DataBusB),
+				  .MEM_ALUOut(ALUOut),
+				  .MEM_DataBusB(DataBusB),
                   .PC_31(PC_31));
 
 Peripheral prph(
