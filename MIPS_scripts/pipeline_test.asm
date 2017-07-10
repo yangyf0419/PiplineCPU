@@ -5,9 +5,15 @@
 addi $s1, $zero, 1
 addi $s2, $zero, 2
 addi $s3, $zero, 3
+<<<<<<< HEAD
 lw $s1, 4($zero)
 lw $s2, 8($zero)
 lw $s3, 12($zero)
+=======
+sw $s1, 0($zero)
+sw $s2, 4($zero)
+sw $s3, 8($zero)
+>>>>>>> master
 
 # data hazard & structure hazard
 # reference @ textbook P120 - P124

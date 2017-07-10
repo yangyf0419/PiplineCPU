@@ -11,14 +11,14 @@ module ALU(A, B, ALUFun, Sign, Z);
     wire z, lt;
     ADD add(A, B, ALUFun[0], Sign, z, lt, add_out);
     CMP cmp(A[31], z, lt, ALUFun[3:1], cmp_out);
-    LOGIC logic(A, B, ALUFun[3:2], logic_out);
+    LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
     always@*
         case (ALUFun[5:4])
             2'b00: Z <= add_out;
-            2'b00: Z <= logic_out;
-            2'b00: Z <= shift_out;
+            2'b01: Z <= logic_out;
+            2'b10: Z <= shift_out;
             default: Z <= {31'b0, cmp_out};
         endcase
     // assign Z =
@@ -28,6 +28,59 @@ module ALU(A, B, ALUFun, Sign, Z);
     //     {31'b0, cmp_out};
 
 endmodule
+
+// module Carry_Look_Ahead_Adder_4_bit(Cin, S, A, B, Cout);
+//     input Cin;
+//     input [3:0] A, B;
+//     output [3:0] S;
+//     output Cout;
+//     wire [3:0] P, G;
+//     wire [4:0] C;
+//     assign P[3:0] = A ^ B;
+//     assign G[3:0] = A & B;
+//     assign S = C[3:0] ^ P;
+//     assign C[0] = Cin;
+//     assign C[1] = G[0]|(P[0]&C[0]);
+//     assign C[2] = G[1]|(P[1]&G[0])|(P[1]&P[0]&C[0]);
+//     assign C[3] = G[2]|(P[2]&G[1])|(P[2]&P[1]&G[0])|(P[2]&P[1]&P[0]&C[0]);
+//     assign C[4] = G[3]|(P[3]&G[2])|(P[3]&P[2]&G[1])|(P[3]&P[2]&P[1]&G[0])|(P[3]&P[2]&P[1]&P[0]&C[0]);
+//     assign Cout = C[4];
+// endmodule
+
+// module ADD(A, B, Fun, Sign, Z, LT, out);
+//     input [31:0] A, B;
+//     input Fun; // ALUFun[0]
+//     input Sign;
+//     output Z;
+//     output LT;
+//     output [31:0] out;
+//     wire [31:0] out_plus, out_minus;
+//     wire [7:0] Cout_plus, Cout_minus;
+
+//     Carry_Look_Ahead_Adder_4_bit
+//         claa_plus_0(1'b0, out_plus[3:0], A[3:0], B[3:0], Cout_plus[0]),
+//         claa_plus_1(Cout_plus[0], out_plus[7:4], A[7:4], B[7:4], Cout_plus[1]),
+//         claa_plus_2(Cout_plus[1], out_plus[11:8], A[11:8], B[11:8], Cout_plus[2]),
+//         claa_plus_3(Cout_plus[2], out_plus[15:12], A[15:12], B[15:12], Cout_plus[3]),
+//         claa_plus_4(Cout_plus[3], out_plus[19:16], A[19:16], B[19:16], Cout_plus[4]),
+//         claa_plus_5(Cout_plus[4], out_plus[23:20], A[23:20], B[23:20], Cout_plus[5]),
+//         claa_plus_6(Cout_plus[5], out_plus[27:24], A[27:24], B[27:24], Cout_plus[6]),
+//         claa_plus_7(Cout_plus[6], out_plus[31:28], A[31:28], B[31:28], Cout_plus[7]),
+
+//         claa_minus_0(1'b1, out_minus[3:0], A[3:0], ~B[3:0], Cout_minus[0]),
+//         claa_minus_1(Cout_minus[0], out_minus[7:4], A[7:4], ~B[7:4], Cout_minus[1]),
+//         claa_minus_2(Cout_minus[1], out_minus[11:8], A[11:8], ~B[11:8], Cout_minus[2]),
+//         claa_minus_3(Cout_minus[2], out_minus[15:12], A[15:12], ~B[15:12], Cout_minus[3]),
+//         claa_minus_4(Cout_minus[3], out_minus[19:16], A[19:16], ~B[19:16], Cout_minus[4]),
+//         claa_minus_5(Cout_minus[4], out_minus[23:20], A[23:20], ~B[23:20], Cout_minus[5]),
+//         claa_minus_6(Cout_minus[5], out_minus[27:24], A[27:24], ~B[27:24], Cout_minus[6]),
+//         claa_minus_7(Cout_minus[6], out_minus[31:28], A[31:28], ~B[31:28], Cout_minus[7]);
+
+//     assign out = Fun? out_minus : out_plus;
+//     assign Z = ~(|out);
+//     assign LT = Sign? out[31] : ~Cout_minus[7];
+// endmodule
+// slow
 
 module ADD(A, B, Fun, Sign, Z, LT, out);
     input [31:0] A, B;
@@ -46,45 +99,44 @@ module CMP(A_31, Z, LT, Fun, out);
     input Z;
     input LT;
     input [2:0] Fun; // ALUFun[3:1]
-    output reg out;
+    output out;
 
-    always@*
-        case (Fun[2:0])
-            3'b001: out <= Z; // eq
-            3'b000: out <= ~Z; // neq
-            3'b010: out <= LT; // LT
-            3'b110: out <= A_31 | Z; // lez
-            3'b101: out <= A_31; // ltz
-            default: out <= ~ (A_31 | Z); // gtz
-        endcase     
-    // assign out =
-    //     (Fun[2:0] == 3'b001)? Z : // eq
-    //     (Fun[2:0] == 3'b000)? ~Z : // neq
-    //     (Fun[2:0] == 3'b010)? LT:
-    //     (Fun[2:0] == 3'b110)? A_31 | Z :
-    //     (Fun[2:0] == 3'b101)? A_31 :
-    //     ~ (A_31 | Z);
-    // case statement is slightly better
-    // 3 more logic eliments - 0.27M more Frequency
+    // always@*
+    //     case (Fun[2:0])
+    //         3'b001: out <= Z; // eq
+    //         3'b000: out <= ~Z; // neq
+    //         3'b010: out <= LT; // LT
+    //         3'b110: out <= A_31 | Z; // lez
+    //         3'b101: out <= A_31; // ltz
+    //         default: out <= ~ (A_31 | Z); // gtz
+    //     endcase     
+    assign out =
+        (Fun[2:0] == 3'b001)? Z : // eq
+        (Fun[2:0] == 3'b000)? ~Z : // neq
+        (Fun[2:0] == 3'b010)? LT:
+        (Fun[2:0] == 3'b110)? A_31 | Z :
+        (Fun[2:0] == 3'b101)? A_31 :
+        ~ (A_31 | Z);
+    // same
 endmodule
-
+// 
 module LOGIC(A, B, Fun, out);
     input [31:0] A, B;
     input [1:0] Fun; // ALUFun[3:2]
-    output [31:0] out;
-    // always @*
-    //     case (Fun[1:0])
-    //         2'b10: out <= A & B;
-    //         2'b11: out <= A | B;
-    //         2'b01: out <= A ^ B;
-    //         default: out <= ~(A | B);
-    //     endcase
-    assign out =
-        (Fun[1:0] == 2'b10)? A & B :
-        (Fun[1:0] == 2'b11)? A | B :
-        (Fun[1:0] == 2'b01)? A ^ B :
-        ~(A | B);
-    // 此处综合没有区别
+    output reg [31:0] out;
+    always @*
+        case (Fun[1:0])
+            2'b10: out <= A & B;
+            2'b11: out <= A | B;
+            2'b01: out <= A ^ B;
+            default: out <= ~(A | B);
+        endcase
+    // assign out =
+    //     (Fun[1:0] == 2'b10)? A & B :
+    //     (Fun[1:0] == 2'b11)? A | B :
+    //     (Fun[1:0] == 2'b01)? A ^ B :
+    //     ~(A | B);
+    // case is slightly better
 endmodule
 
 module SHIFT(Shamt, B, Fun, out);
@@ -124,5 +176,5 @@ module SHIFT(Shamt, B, Fun, out);
         (Fun[1:0] == 2'b00)? sll_16 :
         (Fun[1:0] == 2'b01)? srl_16 :
         sra_16;
-    // 此处综合没有区别
+    // assign is slightly better
 endmodule
