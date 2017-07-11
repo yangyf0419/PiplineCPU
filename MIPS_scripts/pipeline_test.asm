@@ -22,7 +22,7 @@ add $t0, $t0, $t1 # $t0 = 7
 # -------- test 2
 lw $t0, 4($zero) # $t0 = 2
 # structure hazard
-add $t1, $s1, $s3 # $t1 = 4
+add $t1, $s2, $s3 # $t1 = 5
 # data hazard #2-5
 add $t2, $t0, $s1 # $t2 = 3
 
@@ -34,12 +34,20 @@ add $t2, $t0, $s1 # $t2 = 4
 # -------- test 4
 lw $t0, 4($zero) # $t0 = 2
 # data hazard #4-6
-sw $t0, 12($zero) 
+sw $t0, 12($zero)
+lw $t1, 12($zero)
 
 # control hazard
 # reference @ textbook P124 - P126
-jal jump_back
+jal jump_back 
+# addi $t2, $zero, 5
 beq $s2, $t0, end
-jump_back: jr $ra
+# addi $t0, $zero, 7
+nop
+jump_back:
+nop
+nop
+jr $ra
 end:
+nop
 j end

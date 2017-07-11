@@ -7,3 +7,7 @@ DataMem开太大，放不下
 缩减rom和Datamem后，编译速度明显加快
 IRQ将input写为output，modelsim不提示
 本来UART_TX的发送数据取了也没用，但不取就没法把UART_CON[2]情空，导致之后没法发送，因此得加一步取操作
+六级流水问题
+PC+4应该直接透明传输
+次序上要将EX-MEM阶段的forward优先排列
+jal后面立即跟jr，可以无需做处理，现有的冒险已实现

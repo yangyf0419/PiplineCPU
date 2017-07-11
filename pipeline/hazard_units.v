@@ -44,7 +44,7 @@ output IF_Flush;
 output ID_Flush;
 output EX_Flush;
 
-assign IF_Flush = ( (EX_PCSrc == 3'b001) & EX_ALUOut ) | ( ID_PCSrc == 3'b001 ) | ( ID_PCSrc == 3'b011 );
+assign IF_Flush = ( ID_PCSrc == 3'b010 ) | ( ID_PCSrc == 3'b011 ) | ( (EX_PCSrc == 3'b001) & EX_ALUOut );
 assign ID_Flush = (EX_PCSrc == 3'b001) & EX_ALUOut;
 assign EX_Flush = (EX_PCSrc == 3'b001) & EX_ALUOut;
 
@@ -70,7 +70,6 @@ assign ForwardA = 	// 2'b10
 					( EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd == ID_EX_RegisterRs) )? 2'b10:
 					// 2'b01
 					( MEM_WB_RegWrite & (MEM_WB_RegisterRd != 5'b0) 
-						& ~(EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd != ID_EX_RegisterRs))
 						& (MEM_WB_RegisterRd == ID_EX_RegisterRs) )? 2'b01:
 					// 2'b00
 					2'b00;
@@ -79,7 +78,6 @@ assign ForwardB =	// 2'b10
 					( EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd == ID_EX_RegisterRt) )? 2'b10:
 					// 2'b01
 					( MEM_WB_RegWrite & (MEM_WB_RegisterRd != 5'b0) 
-						& ~(EX_MEM_RegWrite & (EX_MEM_RegisterRd != 5'b0) & (EX_MEM_RegisterRd != ID_EX_RegisterRt))
 						& (MEM_WB_RegisterRd == ID_EX_RegisterRt) )? 2'b01: 
 					// 2'b00
 					2'b00;

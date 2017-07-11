@@ -17,8 +17,8 @@ module ALU(A, B, ALUFun, Sign, Z);
     always@*
         case (ALUFun[5:4])
             2'b00: Z <= add_out;
-            2'b00: Z <= logic_out;
-            2'b00: Z <= shift_out;
+            2'b01: Z <= logic_out;
+            2'b10: Z <= shift_out;
             default: Z <= {31'b0, cmp_out};
         endcase
     // assign Z =

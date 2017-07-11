@@ -7,6 +7,8 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     input clk;
     input IRQ;
 
+    output [31:0] MEM_ALUOut;
+
     parameter ILLOP = 32'h80000004; // Interruption
     parameter XADR = 32'h80000008; // Exception
     
@@ -149,7 +151,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                     .PC_Write(PC_Write),
                                     .ctrl_Mux(ctrl_Mux));
 
-    assign sent_to_Register_ctrlSignal = (ctrl_Mux | ID_Flush)? whole_ctrlSignal: 17'b0;
+    assign sent_to_Register_ctrlSignal = (~ctrl_Mux | ID_Flush)?  17'b0 : whole_ctrlSignal;
 
     wire [4:0] MEM_WB_RegisterRd;
     wire MEM_WB_RegWrite;
@@ -172,7 +174,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     assign LU_out = (LUOp)? {Imm16, 16'h0000} : Ext_out;
 
     wire [31:0] ID_ConBA;
-    assign ID_ConBA = {PC_plus_4[31], PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
+    assign ID_ConBA = {ID_PC_plus_4[31], ID_PC_plus_4[30:0] + {Ext_out[28:0], 2'b00}};
 
     wire [31:0] ID_processed_DataBusA,ID_processed_DataBusB;
     assign ID_processed_DataBusA = (ALUSrc1)? {27'b0, Shamt} : DataBusA;
@@ -180,9 +182,10 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     wire [31:0] Branch; // output of ALUOut[0] mux
 
+    wire [2:0] EX_PCSrc;
     assign PC_next = 
-        (PCSrc == 3'b000)? PC_plus_4 :
-        (PCSrc == 3'b001)? Branch :
+        (EX_PCSrc == 3'b001)? Branch :
+        ( (PCSrc == 3'b000) | (PCSrc == 3'b001) )? PC_plus_4 :
         (PCSrc == 3'b010)? {PC_plus_4[31:28], ID_JT, 2'b00} :
         (PCSrc == 3'b011)? DataBusA :
         (PCSrc == 3'b100)? ILLOP :
@@ -191,13 +194,12 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     /******************** end ********************/
 
     /******************** ID/EX joint *******************/
-    wire [15:0] EX_EX_ctrlSignal;
+    wire [11:0] EX_EX_ctrlSignal;
     wire [1:0] EX_MEM_ctrlSignal;
     wire [2:0] EX_WB_ctrlSignal;
     wire [31:0] EX_processed_DataBusA,EX_processed_DataBusB;
     wire [4:0] ID_EX_RegisterRs,ID_EX_RegisterRd;
     wire [31:0] EX_ConBA,EX_PC_plus_4;
-    wire [25:0] EX_JT;
     wire [31:0] EX_DataBusA,EX_DataBusB;
     ID_EX_Register RegisterII(.sysclk(clk),
                               .reset(reset),
@@ -239,7 +241,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     assign EX_ALUFun = EX_EX_ctrlSignal[7:2];
     wire EX_Sign;
     assign EX_Sign = EX_EX_ctrlSignal[8];
-    wire [2:0] EX_PCSrc;
+    
     assign EX_PCSrc = EX_EX_ctrlSignal[11:9];
     // MEM_ctrlSignal[0]=MemWrite, MEM_ctrlSignal[1]=MemRead 
     assign ID_EX_MemRead = EX_MEM_ctrlSignal[1];
@@ -261,6 +263,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     flush_detection_units flush_unit(.EX_PCSrc(EX_PCSrc),
                                      .EX_ALUOut(ALUOut),
+                                     .ID_PCSrc(PCSrc),
                                      // output
                                      .IF_Flush(IF_Flush),
                                      .ID_Flush(ID_Flush),
@@ -272,14 +275,14 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     assign input_A = 
         (ForwardA == 2'b00)? EX_processed_DataBusA:
-        (ForwardA == 2'b01)? MEM_WB_RegisterRd:
-        (ForwardA == 2'b10)? EX_MEM_RegisterRd:
+        (ForwardA == 2'b01)? DataBusC:
+        (ForwardA == 2'b10)? MEM_ALUOut:
         5'b0;
 
     assign input_B = 
         (ForwardB == 2'b00)? EX_processed_DataBusB:
-        (ForwardB == 2'b01)? MEM_WB_RegisterRd:
-        (ForwardB == 2'b10)? EX_MEM_RegisterRd:
+        (ForwardB == 2'b01)? DataBusC:
+        (ForwardB == 2'b10)? MEM_ALUOut:
         5'b0;
 
 
@@ -287,7 +290,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
 
 
-    assign Branch = ALUOut[0]? EX_ConBA : EX_PC_plus_4;
+    assign Branch = ALUOut[0]? EX_ConBA : PC_plus_4;
 
 
     // alu part
@@ -311,7 +314,6 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     /******************** end ********************/
 
     /******************** EX/MEM joint *******************/
-    output [31:0] MEM_ALUOut;
     wire [2:0] MEM_WB_ctrlSignal;
     wire [1:0] MEM_MEM_ctrlSignal;
 
@@ -339,7 +341,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     /******************** begin ********************/
 
     // MEM_ctrlSignal[0]=MemWrite, MEM_ctrlSignal[1]=MemRead 
-    // MEM_ctrlSignal = {MemRead,MemWrite};
+    // MEM_ctrlSignal = {MemRead,MemWrOite};
 
     wire MEM_MemWrite;
     assign MEM_MemWrite = MEM_MEM_ctrlSignal[0];
@@ -411,7 +413,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     	(WB_MemtoReg[1:0] == 2'b00)? WB_ALUOut :
     	(WB_MemtoReg[1:0] == 2'b01)? WB_DataOut :
         (WB_MemtoReg[1:0] == 2'b10)? WB_PC_plus_4 :
-    	EX_PC_plus_4;
+    	PC;
 
     // When interruption happens, ID/EX.PC_plus_4 should be written to Register.
 

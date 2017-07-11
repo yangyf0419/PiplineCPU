@@ -93,7 +93,7 @@ reg [31:0] ConBA_reg,PC_plus_4_reg;
 
 always @(posedge sysclk or negedge reset) begin
 	if (~reset) begin
-		EX_ctrlSignal_reg <= 11'b0;
+		EX_ctrlSignal_reg <= 12'b0;
 		MEM_ctrlSignal_reg <= 2'b0;
 		WB_ctrlSignal_reg <= 3'b0;
 		Rs_reg <= 5'b0;
