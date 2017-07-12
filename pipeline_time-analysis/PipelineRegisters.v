@@ -219,61 +219,36 @@ endmodule
 // MEM/WB Register
 module MEM_WB_Register(sysclk,
 						reset,
-						MEM_ALUOut,
-						MEM_PC_plus_4,
-						EX_MEM_WB_ctrlSignal,
+						MEM_RegWrite,
+						MEM_DataBusC,
 						EX_MEM_RegisterRd,
-						ReadData,
-						MEM_IRQ,
-						MEM_branchIRQ,
 						// output
-						WB_ctrlSignal,
-						ReadData_Out,
-						WB_ALUOut,
-						MEM_WB_RegisterRd,
-						WB_PC_plus_4,
-						WB_IRQ,
-						WB_branchIRQ);
+						WB_RegWrite,
+						WB_DataBusC,
+						MEM_WB_RegisterRd);
 
-	input sysclk,reset;		
-	input [31:0] MEM_ALUOut;
-	input [31:0] MEM_PC_plus_4;
-	input [2:0] EX_MEM_WB_ctrlSignal;
+	input sysclk,reset;	
+	input MEM_RegWrite;
+	input [31:0] MEM_DataBusC;
 	input [4:0] EX_MEM_RegisterRd;
-	input [31:0] ReadData;
-	input MEM_IRQ;
-	input [1:0] MEM_branchIRQ;
 
-	output reg [31:0] ReadData_Out;
+	output reg WB_RegWrite;
+	output reg [31:0] WB_DataBusC;
 	output reg [4:0] MEM_WB_RegisterRd;
-	output reg [2:0] WB_ctrlSignal;
-	output reg [31:0] WB_ALUOut;
-	output reg [31:0] WB_PC_plus_4;
-	output reg WB_IRQ;
-	output reg [1:0] WB_branchIRQ;
 
 	always @(posedge sysclk or negedge reset) begin
 		if (~reset) begin
-			ReadData_Out <= 32'b0;
+			WB_RegWrite <= 32'b0;
 			MEM_WB_RegisterRd <= 5'b0;
-			WB_ctrlSignal <= 3'b0;
-			WB_ALUOut <= 32'b0;
+			WB_DataBusC <= 32'b0;
 		end
 		else begin
-			ReadData_Out <= ReadData;
+			WB_RegWrite <= MEM_RegWrite;
 
 			MEM_WB_RegisterRd <= EX_MEM_RegisterRd;
 
-			WB_ctrlSignal <= EX_MEM_WB_ctrlSignal;
-
-			WB_ALUOut <= MEM_ALUOut;
-
-			WB_PC_plus_4 <= MEM_PC_plus_4;
-
-			WB_IRQ <= MEM_IRQ;
-			WB_branchIRQ <= MEM_branchIRQ;
+			WB_DataBusC <= MEM_DataBusC;
 		end
-
 	end
 
 endmodule
