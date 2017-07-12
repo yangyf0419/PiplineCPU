@@ -197,9 +197,12 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     wire [31:0] ALUOut;
 
-    wire ID_branchIRQ;
-    // if branch happens, ID_branchIRQ = 1, else ID_branchIRQ = 0
-    assign ID_branchIRQ = (EX_PCSrc == 3'b001 & ALUOut[0])? 1 : 0;
+    wire [1:0] ID_branchIRQ;
+    // if EX branch will happen, ID_branchIRQ = 01, else ID_branchIRQ = 00
+    // if EX instruction is jump or MEM instruction is branch_happens, ID_ranchIRQ = 10
+    wire [2:0] MEM_PCSrc;
+    assign ID_branchIRQ = (EX_PCSrc == 3'b001 & ALUOut[0]) ? 2'b01 :
+    						(EX_PCSrc == 3'b010 | EX_PCSrc == 3'b011 | (MEM_PCSrc == 3'b001 & MEM_ALUOut[0]) )? 2'b10 : 2'b00;
 
     /******************** end ********************/
 
@@ -213,7 +216,8 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     wire [31:0] EX_DataBusA,EX_DataBusB;
     wire EX_ALUSrc2;
     wire [31:0] EX_LUOut;
-    wire EX_IRQ,EX_branchIRQ;
+    wire EX_IRQ;
+    wire [1:0] EX_branchIRQ;
     ID_EX_Register RegisterII(.sysclk(clk),
                               .reset(reset),
                               .wholeSignal(sent_to_Register_ctrlSignal),
@@ -342,7 +346,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     output [31:0] MEM_DataBusB;
     wire [31:0] MEM_PC_plus_4;
     wire MEM_IRQ;
-    wire MEM_branchIRQ;
+    wire [1:0] MEM_branchIRQ;
     EX_MEM_Register RegisterIII(.sysclk(clk),
                                 .reset(reset),
                                 .ID_EX_WB_ctrlSignal(EX_WB_ctrlSignal),
@@ -353,6 +357,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                 .EX_PC_plus_4(EX_PC_plus_4),
                                 .EX_IRQ(EX_IRQ),
                                 .EX_branchIRQ(EX_branchIRQ),
+                                .EX_PCSrc(EX_PCSrc),
                                 // output
                                 .MEM_ALUOut(MEM_ALUOut),
                                 .WB_ctrlSignal(MEM_WB_ctrlSignal),
@@ -361,7 +366,8 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                 .MEM_DataBusB(MEM_DataBusB),
                                 .MEM_PC_plus_4(MEM_PC_plus_4),
                                 .MEM_IRQ(MEM_IRQ),
-                                .MEM_branchIRQ(MEM_branchIRQ));
+                                .MEM_branchIRQ(MEM_branchIRQ),
+                                .MEM_PCSrc(MEM_PCSrc));
 
     /******************** end ********************/
 
@@ -409,7 +415,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     wire [31:0] WB_DataOut;
     wire [31:0] WB_ALUOut;
     wire [31:0] WB_PC_plus_4;
-    wire WB_branchIRQ;
+    wire [1:0] WB_branchIRQ;
 
     MEM_WB_Register  RegisterIV(.sysclk(clk),
                                 .reset(reset),
@@ -450,7 +456,10 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     /*assign interruption_target = (WB_MemtoReg[1:0] == 2'b11)? 
                                 () : 
                                 32'b0;*/
-    assign interruption_target = (~WB_branchIRQ) ? (WB_PC_plus_4 - 32'd4) : (WB_PC_plus_4 - 32'd8);
+    // schedule needed
+    assign interruption_target = (WB_branchIRQ == 2'b00) ? (WB_PC_plus_4 - 32'd4) :
+    							(WB_branchIRQ == 2'b01)? (WB_PC_plus_4 - 32'd8) :
+    							(MEM_PC_plus_4 - 32'd4);
 
     assign DataBusC = 
     	(WB_MemtoReg[1:0] == 2'b00)? ( WB_IRQ? interruption_target : WB_ALUOut) :

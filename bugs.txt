@@ -14,3 +14,6 @@ jal后面立即跟jr，可以无需做处理，现有的冒险已实现
 
 branch 第一个问题主要在跳转的地址，如果不发生跳转，则branch应该赋值 PC_plus_4 （IF阶段的），之前写成了 EX_PC_plus_4；
 	第二个问题在 PC_next，PC_next应当在 EX_PCSrc == ... 时取EX阶段算出的 branch
+
+forward 问题
+断点问题

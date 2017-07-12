@@ -25,16 +25,6 @@ module pipelineTest;
 
 	initial begin
         UART_RX <= 1;
-        #10416 UART_RX <= 0;
-        #10416 UART_RX <= 0;//输入 8'h96
-        #10416 UART_RX <= 1;//输出 8'h69 
-        #10416 UART_RX <= 1;
-        #10416 UART_RX <= 0;
-        #10416 UART_RX <= 1;
-        #10416 UART_RX <= 0;
-        #10416 UART_RX <= 0;
-        #10416 UART_RX <= 1;
-        #10416 UART_RX <= 1;
 
         #10416 UART_RX <= 0;
         #10416 UART_RX <= 1;//输入 8'hb9
@@ -43,6 +33,17 @@ module pipelineTest;
         #10416 UART_RX <= 1;
         #10416 UART_RX <= 1;
         #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 1;
+
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 0;//输入 8'h96
+        #10416 UART_RX <= 1;//输出 8'h69 
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
+        #10416 UART_RX <= 1;
+        #10416 UART_RX <= 0;
         #10416 UART_RX <= 0;
         #10416 UART_RX <= 1;
         #10416 UART_RX <= 1;

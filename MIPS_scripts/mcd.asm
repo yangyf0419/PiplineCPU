@@ -24,7 +24,7 @@
 # Address of low 4 bit of the second number - 0x00000200 - 512
 # Address of high 4 bit of the second number - 0x00000400 - 1024
 #----------- end -----------#
-j initial
+j initial              
 j interruption
 j exception
 
@@ -86,12 +86,12 @@ output':
 add $a0, $zero, $zero
 output:
 sw $a0, 12($t9) # ligh up LEDs
-sw $a0, 24($t9)
-sw $s6, 32($t9)
+sw $a0, 24($t9)		
+# line 40
+sw $s6, 32($t9)			
 waiting:
 lw $t0, 32($t9) # get UART_CON
 andi $t1, $t0, 4 # get UART_CON[2]
-# line 40
 beq $t1, $zero, waiting # if !TX_Status, keep on
 lw $t0, 24($t9)
 sw $zero, 32($t9) # stop sending
