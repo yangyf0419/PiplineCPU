@@ -73,94 +73,70 @@ module ID_EX_Register(sysclk,
 					EX_IRQ,
 					EX_branchIRQ);
 
-input sysclk,reset;		
-//input flush;	// deal with branch hazzard
-input [15:0] wholeSignal;	//the whole control signal
-input [4:0] IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd;
-input [31:0] input_DataBusA;//input_DataBusB;
-input [31:0] ID_ConBA,ID_PC_plus_4,ID_DataBusB;
-input ID_ALUSrc2;
-input [31:0] ID_LUOut;
-input ID_IRQ;
-input [1:0] ID_branchIRQ;
+	input sysclk,reset;		
+	//input flush;	// deal with branch hazzard
+	input [15:0] wholeSignal;	//the whole control signal
+	input [4:0] IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd;
+	input [31:0] input_DataBusA;//input_DataBusB;
+	input [31:0] ID_ConBA,ID_PC_plus_4,ID_DataBusB;
+	input ID_ALUSrc2;
+	input [31:0] ID_LUOut;
+	input ID_IRQ;
+	input [1:0] ID_branchIRQ;
 
-output reg [31:0] EX_ConBA,EX_PC_plus_4;
-output [10:0] EX_ctrlSignal;
-output [1:0] MEM_ctrlSignal;
-output [2:0] WB_ctrlSignal;
-output [4:0] Rs,Rt,Rd;
-output [31:0] output_DataBusA,EX_DataBusB;
-output EX_ALUSrc2;
-output [31:0] EX_LUOut;
-output EX_IRQ;
-output reg [1:0] EX_branchIRQ;
+	output reg [31:0] EX_ConBA,EX_PC_plus_4;
+	output reg [10:0] EX_ctrlSignal;
+	output reg [1:0] MEM_ctrlSignal;
+	output reg [2:0] WB_ctrlSignal;
+	output reg [4:0] Rs,Rt,Rd;
+	output reg [31:0] output_DataBusA,EX_DataBusB;
+	output reg EX_ALUSrc2;
+	output reg [31:0] EX_LUOut;
+	output reg EX_IRQ;
+	output reg [1:0] EX_branchIRQ;
 
-reg [10:0] EX_ctrlSignal_reg;
-reg [1:0] MEM_ctrlSignal_reg;
-reg [2:0] WB_ctrlSignal_reg;
-reg [4:0] Rs_reg,Rt_reg,Rd_reg;
-reg [31:0] Reg_processed_DataBusA,Reg_processed_DataBusB;
-reg [31:0] Reg_DataBusB;
-reg ALUSrc2_reg;
-reg [31:0] LUOut_reg;
-reg IRQ_reg;
+	always @(posedge sysclk or negedge reset) begin
+		if (~reset) begin
+			EX_ctrlSignal <= 11'b0;
+			MEM_ctrlSignal <= 2'b0;
+			WB_ctrlSignal <= 3'b0;
+			Rs <= 5'b0;
+			Rt <= 5'b0; 
+			Rd <= 5'b0;
+			output_DataBusA <= 32'b0;
+			//Reg_processed_DataBusB <= 32'b0;
+			EX_ConBA <= 32'b0;
+			EX_DataBusB <= 32'b0;
+			EX_ALUSrc2 <= 0;
+			EX_LUOut <= 32'b0;
+		end
+		else begin
+			EX_ctrlSignal <= wholeSignal[10:0];
+			MEM_ctrlSignal <= wholeSignal[12:11];
+			WB_ctrlSignal <= wholeSignal[15:13];
 
-always @(posedge sysclk or negedge reset) begin
-	if (~reset) begin
-		EX_ctrlSignal_reg <= 11'b0;
-		MEM_ctrlSignal_reg <= 2'b0;
-		WB_ctrlSignal_reg <= 3'b0;
-		Rs_reg <= 5'b0;
-		Rt_reg <= 5'b0; 
-		Rd_reg <= 5'b0;
-		Reg_processed_DataBusA <= 32'b0;
-		//Reg_processed_DataBusB <= 32'b0;
-		EX_ConBA <= 32'b0;
-		Reg_DataBusB <= 32'b0;
-		ALUSrc2_reg <= 0;
-		LUOut_reg <= 32'b0;
+			Rs <= IF_ID_RegisterRs;
+			Rt <= IF_ID_RegisterRt;
+			Rd <= IF_ID_RegisterRd;
+
+			output_DataBusA <= input_DataBusA;
+
+			EX_ConBA <= ID_ConBA;
+
+			EX_PC_plus_4 <= ID_PC_plus_4;
+
+			EX_DataBusB <= ID_DataBusB;
+
+			EX_ALUSrc2 <= ID_ALUSrc2;
+
+			EX_LUOut <= ID_LUOut;
+
+			EX_IRQ <= ID_IRQ;
+
+			EX_branchIRQ <= ID_branchIRQ;
+		end
+
 	end
-	else begin
-		EX_ctrlSignal_reg <= wholeSignal[10:0];
-		MEM_ctrlSignal_reg <= wholeSignal[12:11];
-		WB_ctrlSignal_reg <= wholeSignal[15:13];
-
-		Rs_reg <= IF_ID_RegisterRs;
-		Rt_reg <= IF_ID_RegisterRt;
-		Rd_reg <= IF_ID_RegisterRd;
-
-		Reg_processed_DataBusA <= input_DataBusA;
-		//Reg_processed_DataBusB <= input_DataBusB;
-
-		EX_ConBA <= ID_ConBA;
-
-		EX_PC_plus_4 <= ID_PC_plus_4;
-
-		Reg_DataBusB <= ID_DataBusB;
-
-		ALUSrc2_reg <= ID_ALUSrc2;
-
-		LUOut_reg <= ID_LUOut;
-
-		IRQ_reg <= ID_IRQ;
-
-		EX_branchIRQ <= ID_branchIRQ;
-	end
-
-end
-
-	assign EX_ctrlSignal = EX_ctrlSignal_reg;
-	assign MEM_ctrlSignal = MEM_ctrlSignal_reg;
-	assign WB_ctrlSignal = WB_ctrlSignal_reg;
-	assign Rs = Rs_reg;
-	assign Rt = Rt_reg;
-	assign Rd = Rd_reg;
-	assign output_DataBusA = Reg_processed_DataBusA;
-	//assign output_DataBusB = Reg_processed_DataBusB;
-	assign EX_DataBusB = Reg_DataBusB;
-	assign EX_ALUSrc2 = ALUSrc2_reg;
-	assign EX_LUOut = LUOut_reg;
-	assign EX_IRQ = IRQ_reg;
 
 endmodule
 // ID/EX Register END
