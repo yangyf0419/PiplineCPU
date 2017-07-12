@@ -1,4 +1,4 @@
-Bug 汇总
+﻿Bug 汇总
 rom 给的地址是读取[7:2]，即只能容纳64行代码
 UART_CON[1:0]按理说由CPU操作，因此就没有在initial中赋值，这样会引起仿真时的未定义情况
 sysclk, cpuclk, uartclk, timerclk问题
@@ -11,3 +11,6 @@ IRQ将input写为output，modelsim不提示
 PC+4应该直接透明传输
 次序上要将EX-MEM阶段的forward优先排列
 jal后面立即跟jr，可以无需做处理，现有的冒险已实现
+
+branch 第一个问题主要在跳转的地址，如果不发生跳转，则branch应该赋值 PC_plus_4 （IF阶段的），之前写成了 EX_PC_plus_4；
+	第二个问题在 PC_next，PC_next应当在 EX_PCSrc == ... 时取EX阶段算出的 branch

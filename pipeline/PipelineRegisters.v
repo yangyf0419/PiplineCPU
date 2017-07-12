@@ -59,6 +59,10 @@ module ID_EX_Register(sysclk,
 					ID_ConBA,
 					ID_PC_plus_4,
 					ID_DataBusB,
+					ID_ALUSrc2,
+					ID_LUOut,
+					ID_IRQ,
+					ID_branchIRQ,
 					// output 
 					EX_ctrlSignal,
 					WB_ctrlSignal,
@@ -68,7 +72,11 @@ module ID_EX_Register(sysclk,
 					output_DataBusB,
 					EX_ConBA,
 					EX_PC_plus_4,
-					EX_DataBusB);
+					EX_DataBusB,
+					EX_ALUSrc2,
+					EX_LUOut,
+					EX_IRQ,
+					EX_branchIRQ);
 
 input sysclk,reset;		
 //input flush;	// deal with branch hazzard
@@ -76,12 +84,20 @@ input [16:0] wholeSignal;	//the whole control signal
 input [4:0] IF_ID_RegisterRs,IF_ID_RegisterRt,IF_ID_RegisterRd;
 input [31:0] input_DataBusA,input_DataBusB;
 input [31:0] ID_ConBA,ID_PC_plus_4,ID_DataBusB;
+input ID_ALUSrc2;
+input [31:0] ID_LUOut;
+input ID_IRQ,ID_branchIRQ;
+
 output [31:0] EX_ConBA,EX_PC_plus_4;
 output [11:0] EX_ctrlSignal;
 output [1:0] MEM_ctrlSignal;
 output [2:0] WB_ctrlSignal;
 output [4:0] Rs,Rt,Rd;
 output [31:0] output_DataBusA,output_DataBusB,EX_DataBusB;
+output EX_ALUSrc2;
+output [31:0] EX_LUOut;
+output EX_IRQ;
+output reg EX_branchIRQ;
 
 reg [11:0] EX_ctrlSignal_reg;
 reg [1:0] MEM_ctrlSignal_reg;
@@ -90,6 +106,9 @@ reg [4:0] Rs_reg,Rt_reg,Rd_reg;
 reg [31:0] Reg_processed_DataBusA,Reg_processed_DataBusB;
 reg [31:0] Reg_DataBusB;
 reg [31:0] ConBA_reg,PC_plus_4_reg;
+reg ALUSrc2_reg;
+reg [31:0] LUOut_reg;
+reg IRQ_reg;
 
 always @(posedge sysclk or negedge reset) begin
 	if (~reset) begin
@@ -104,6 +123,8 @@ always @(posedge sysclk or negedge reset) begin
 		ConBA_reg <= 32'b0;
 		//PC_plus_4_reg <= 32'h80000004;
 		Reg_DataBusB <= 32'b0;
+		ALUSrc2_reg <= 0;
+		LUOut_reg <= 32'b0;
 	end
 	else begin
 		EX_ctrlSignal_reg <= wholeSignal[11:0];
@@ -122,6 +143,14 @@ always @(posedge sysclk or negedge reset) begin
 		PC_plus_4_reg <= ID_PC_plus_4;
 
 		Reg_DataBusB <= ID_DataBusB;
+
+		ALUSrc2_reg <= ID_ALUSrc2;
+
+		LUOut_reg <= ID_LUOut;
+
+		IRQ_reg <= ID_IRQ;
+
+		EX_branchIRQ <= ID_branchIRQ;
 	end
 
 end
@@ -137,6 +166,9 @@ end
 	assign EX_ConBA = ConBA_reg;
 	assign EX_PC_plus_4 = PC_plus_4_reg;
 	assign EX_DataBusB = Reg_DataBusB;
+	assign EX_ALUSrc2 = ALUSrc2_reg;
+	assign EX_LUOut = LUOut_reg;
+	assign EX_IRQ = IRQ_reg;
 
 endmodule
 // ID/EX Register END
@@ -151,23 +183,30 @@ module EX_MEM_Register(sysclk,
 						EX_ALUOut,
 						EX_AddrC,
 						EX_PC_plus_4,
+						EX_IRQ,
+						EX_branchIRQ,
 						// output
 						MEM_ALUOut,
 						WB_ctrlSignal,
 						MEM_ctrlSignal,
 						EX_MEM_RegisterRd,
 						MEM_DataBusB,
-						MEM_PC_plus_4);
+						MEM_PC_plus_4,
+						MEM_IRQ,
+						MEM_branchIRQ);
 
 input sysclk,reset;		
 input [1:0] ID_EX_MEM_ctrlSignal;
 input [2:0] ID_EX_WB_ctrlSignal;
 input [31:0] EX_DataBusB,EX_ALUOut,EX_PC_plus_4;
 input [4:0] EX_AddrC;
+input EX_IRQ,EX_branchIRQ;
+
 output [31:0] MEM_ALUOut,MEM_DataBusB,MEM_PC_plus_4;
 output [1:0] MEM_ctrlSignal;
 output [2:0] WB_ctrlSignal;
 output [4:0] EX_MEM_RegisterRd;
+output reg MEM_IRQ,MEM_branchIRQ;
 
 reg [4:0] AddrC_reg;
 reg [31:0] ALUOut_reg,DataBusB_reg;
@@ -196,6 +235,9 @@ always @(posedge sysclk or negedge reset) begin
 		WB_ctrlSignal_reg <= ID_EX_WB_ctrlSignal;
 
 		PC_plus_4_reg <= EX_PC_plus_4;
+
+		MEM_IRQ <= EX_IRQ;
+		MEM_branchIRQ <= EX_branchIRQ;
 	end
 
 
@@ -221,12 +263,16 @@ module MEM_WB_Register(sysclk,
 						EX_MEM_WB_ctrlSignal,
 						EX_MEM_RegisterRd,
 						ReadData,
+						MEM_IRQ,
+						MEM_branchIRQ,
 						// output
 						WB_ctrlSignal,
 						ReadData_Out,
 						WB_ALUOut,
 						MEM_WB_RegisterRd,
-						WB_PC_plus_4);
+						WB_PC_plus_4,
+						WB_IRQ,
+						WB_branchIRQ);
 
 input sysclk,reset;		
 input [31:0] MEM_ALUOut;
@@ -234,11 +280,14 @@ input [31:0] MEM_PC_plus_4;
 input [2:0] EX_MEM_WB_ctrlSignal;
 input [4:0] EX_MEM_RegisterRd;
 input [31:0] ReadData;
+input MEM_IRQ,MEM_branchIRQ;
+
 output [31:0] ReadData_Out;
 output [4:0] MEM_WB_RegisterRd;
 output [2:0] WB_ctrlSignal;
 output [31:0] WB_ALUOut;
 output [31:0] WB_PC_plus_4;
+output reg WB_IRQ,WB_branchIRQ;
 
 reg [31:0] ReadData_reg;
 reg [4:0] Rd_reg;
@@ -264,6 +313,9 @@ always @(posedge sysclk or negedge reset) begin
 		ALUOut_reg <= MEM_ALUOut;
 
 		PC_plus_4_reg <= MEM_PC_plus_4;
+
+		WB_IRQ <= MEM_IRQ;
+		WB_branchIRQ <= MEM_branchIRQ;
 	end
 
 end

@@ -2,7 +2,7 @@
 # test pipeline hazard
 
 # -------- initialization
-addi $s1, $zero, 1
+addi $s1, $zero, 1		# line 0
 addi $s2, $zero, 2
 addi $s3, $zero, 3
 
@@ -34,8 +34,8 @@ add $t2, $t0, $s1 # $t2 = 4
 # -------- test 4
 lw $t0, 4($zero) # $t0 = 2
 # data hazard #4-6
-sw $t0, 12($zero)
-lw $t1, 12($zero)
+sw $t0, 12($zero)   # line 15
+lw $t1, 12($zero)	# line 16
 
 # control hazard
 # reference @ textbook P124 - P126

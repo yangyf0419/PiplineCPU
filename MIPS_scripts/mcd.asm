@@ -41,8 +41,9 @@ lw $a0, 28($t9) # first Number
 andi $t0, $a0, 15 # low 4 bit of first number
 # line 10
 sw $t0, 72($zero)
-srl $t1, $a0, 4 # high 4 bit of first number
-sw $t1, 76($zero)
+srl $t0, $a0, 4 # high 4 bit of first number
+sw $t0, 76($zero)
+
 sw $s7, 32($t9) # enable UART_RX
 get_second:
 lw $t0, 32($t9) # get UART_CON
@@ -60,17 +61,18 @@ sw $t0, 68($zero)
 
 # start the timer
 addi $t0, $zero, -50
-sw $t0, 0($t9)        # bug here
+sw $t0, 0($t9)
 addi $t0, $zero, -1
 sw $t0, 4($t9)
 sw $s5, 8($t9)
 
 beq $a0, $zero, output
 beq $a1, $zero, output'
-# line 30
 loop:
+# line 30
 beq $a0, $a1, output
 sub $t0, $a0, $a1
+
 bltz $t0, less
 # if a0 > a1
 sub $a0, $a0, $a1
@@ -85,11 +87,11 @@ add $a0, $zero, $zero
 output:
 sw $a0, 12($t9) # ligh up LEDs
 sw $a0, 24($t9)
-# line 40
 sw $s6, 32($t9)
 waiting:
 lw $t0, 32($t9) # get UART_CON
 andi $t1, $t0, 4 # get UART_CON[2]
+# line 40
 beq $t1, $zero, waiting # if !TX_Status, keep on
 lw $t0, 24($t9)
 sw $zero, 32($t9) # stop sending
@@ -102,13 +104,13 @@ initial: # setup at the begining of the program
 addi $ra, $zero, 12 # set $ra as the first line of the program
 lui $t9, 16384 # $t9 = 8'h40000000
 addi $s7, $zero, 2 # $s7 = 8'h00000002
-# line 50
 addi $s6, $zero, 1 # $s6 = 8'h00000001
 addi $s5, $zero, 3 # $s5 = 8'h00000003
 addi $s4, $zero, 16 # $s4 = 16
 
 # Use Data Memory as BCD Module
 # 7'b1000000
+# line 50
 addi $t0, $zero, 64
 sw $t0, 0($zero)
 # 7'b1111001
@@ -119,11 +121,11 @@ addi $t0, $zero, 36
 sw $t0, 8($zero)
 # 7'b0110000
 addi $t0, $zero, 48
-# line 60
 sw $t0, 12($zero)
 # 7'b0011001
 addi $t0, $zero, 25
 sw $t0, 16($zero)
+# line 60
 # 7'b0010010
 addi $t0, $zero, 18
 sw $t0, 20($zero)
@@ -136,11 +138,11 @@ sw $t0, 28($zero)
 # 7'b0000000
 sw $zero, 32($zero)
 # 7'b0010000
-# line 70
 addi $t0, $zero, 16
 sw $t0, 36($zero)
 # 7'b0001000
 addi $t0, $zero, 8
+# line 70
 sw $t0, 40($zero)
 # 7'b0000011
 addi $t0, $zero, 3
@@ -152,11 +154,11 @@ sw $t0, 48($zero)
 addi $t0, $zero, 33
 sw $t0, 52($zero)
 # 7'b0000110
-# line 80
 addi $t0, $zero, 6
 sw $t0, 56($zero)
 # 7'b0001110
 addi $t0, $zero, 14
+# line 80
 sw $t0, 60($zero)
 
 addi $t0, $zero, 256
@@ -165,7 +167,6 @@ addi $t0, $zero, 512
 sw $t0, 84($zero)
 addi $t0, $zero, 1024
 sw $t0, 88($zero)
-# line 90
 addi $t0, $zero, 2048
 sw $t0, 92($zero)
 
@@ -177,12 +178,12 @@ interruption:
 lw $k1, 8($t9) # get TCON
 andi $k1, $k1, -7
 sw $k1, 8($t9) # stop timer
+# line 90
 # sw $s6, 8($t9)
 lw $s3, 76($s4) # get control bit
 lw $k1, 60($s4) # get 4-bit number to be showed
 sll $k1, $k1, 2
 lw $k1, 0($k1) # interpret the 4-bit number into 7-bit digitube level
-# line 100
 add $k1, $k1, $s3 # use $k1 to control digitube at 0x40000014
 sw $k1, 20($t9)
 addi $s4, $s4, -4 # adjust the mdigitube address
