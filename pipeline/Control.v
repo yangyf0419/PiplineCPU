@@ -3,7 +3,7 @@
 module Control(OpCode, Funct, IRQ,
     PCSrc, Sign, RegWrite, RegDst, 
     MemRead, MemWrite, MemtoReg, 
-    ALUSrc1, ALUSrc2, ExtOp, LuOp, ALUFun);
+    ALUSrc1, ALUSrc2, ExtOp, LuOp, B, J, ALUFun);
     input [5:0] OpCode;
     input [5:0] Funct;
     input IRQ; // external interruption
@@ -20,6 +20,8 @@ module Control(OpCode, Funct, IRQ,
     output ExtOp;
     output LuOp;
     output reg [5:0] ALUFun;
+    output B;
+    output J;
 
     wire exception;
     assign exception = 
@@ -43,16 +45,24 @@ module Control(OpCode, Funct, IRQ,
     assign PCSrc[2:0] =
         IRQ? 3'b100 :
         exception? 3'b101 :
-        (OpCode == 6'h04 || // beq
-         OpCode == 6'h05 || // bne
-         OpCode == 6'h06 || // blez
-         OpCode == 6'h07 || // bgtz
-         OpCode == 6'h01)? 3'b001: // bltz
         (OpCode == 6'h02 || // j
          OpCode == 6'h03)? 3'b010: // jal
         (OpCode == 6'h00 && (Funct == 6'h08 || // jr
                              Funct == 6'h09))? 3'b011: // jalr
         3'b000;
+
+    assign B = 
+        (OpCode == 6'h04 || // beq
+         OpCode == 6'h05 || // bne
+         OpCode == 6'h06 || // blez
+         OpCode == 6'h07 || // bgtz
+         OpCode == 6'h01);
+
+    assign J = 
+        (OpCode == 6'h02 || // j
+         OpCode == 6'h03 || // jal
+        (OpCode == 6'h00 && (Funct == 6'h08 || // jr
+                             Funct == 6'h09))); // jalr
 
     assign Sign = 
     	((OpCode == 6'h00 && Funct == 6'h2b) || // sltu

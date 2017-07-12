@@ -11,7 +11,7 @@ module ALU(A, B, ALUFun, Sign, Z);
     wire z, lt;
     ADD add(A, B, ALUFun[0], Sign, z, lt, add_out);
     CMP cmp(A[31], z, lt, ALUFun[3:1], cmp_out);
-    LOGIC logic(A, B, ALUFun[3:2], logic_out);
+    LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
     always@*
@@ -46,26 +46,25 @@ module CMP(A_31, Z, LT, Fun, out);
     input Z;
     input LT;
     input [2:0] Fun; // ALUFun[3:1]
-    output reg out;
+    output out;
 
-    always@*
-        case (Fun[2:0])
-            3'b001: out <= Z; // eq
-            3'b000: out <= ~Z; // neq
-            3'b010: out <= LT; // LT
-            3'b110: out <= A_31 | Z; // lez
-            3'b101: out <= A_31; // ltz
-            default: out <= ~ (A_31 | Z); // gtz
-        endcase     
-    // assign out =
-    //     (Fun[2:0] == 3'b001)? Z : // eq
-    //     (Fun[2:0] == 3'b000)? ~Z : // neq
-    //     (Fun[2:0] == 3'b010)? LT:
-    //     (Fun[2:0] == 3'b110)? A_31 | Z :
-    //     (Fun[2:0] == 3'b101)? A_31 :
-    //     ~ (A_31 | Z);
-    // case statement is slightly better
-    // 3 more logic eliments - 0.27M more Frequency
+    // always@*
+    // case (Fun[2:0])
+    //     3'b001: out <= Z; // eq
+    //     3'b000: out <= ~Z; // neq
+    //     3'b010: out <= LT; // LT
+    //     3'b110: out <= A_31 | Z; // lez
+    //     3'b101: out <= A_31; // ltz
+    //     default: out <= ~ (A_31 | Z); // gtz
+    // endcase     
+    assign out =
+        (Fun[2:0] == 3'b001)? Z : // eq
+        (Fun[2:0] == 3'b000)? ~Z : // neq
+        (Fun[2:0] == 3'b010)? LT:
+        (Fun[2:0] == 3'b110)? A_31 | Z :
+        (Fun[2:0] == 3'b101)? A_31 :
+        ~ (A_31 | Z);
+    // 此处综合没有区别
 endmodule
 
 module LOGIC(A, B, Fun, out);
@@ -124,5 +123,5 @@ module SHIFT(Shamt, B, Fun, out);
         (Fun[1:0] == 2'b00)? sll_16 :
         (Fun[1:0] == 2'b01)? srl_16 :
         sra_16;
-    // 此处综合没有区别
+    // assign is better
 endmodule

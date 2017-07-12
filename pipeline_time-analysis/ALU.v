@@ -49,14 +49,14 @@ module CMP(A_31, Z, LT, Fun, out);
     output out;
 
     // always@*
-    //     case (Fun[2:0])
-    //         3'b001: out <= Z; // eq
-    //         3'b000: out <= ~Z; // neq
-    //         3'b010: out <= LT; // LT
-    //         3'b110: out <= A_31 | Z; // lez
-    //         3'b101: out <= A_31; // ltz
-    //         default: out <= ~ (A_31 | Z); // gtz
-    //     endcase     
+    // case (Fun[2:0])
+    //     3'b001: out <= Z; // eq
+    //     3'b000: out <= ~Z; // neq
+    //     3'b010: out <= LT; // LT
+    //     3'b110: out <= A_31 | Z; // lez
+    //     3'b101: out <= A_31; // ltz
+    //     default: out <= ~ (A_31 | Z); // gtz
+    // endcase     
     assign out =
         (Fun[2:0] == 3'b001)? Z : // eq
         (Fun[2:0] == 3'b000)? ~Z : // neq
@@ -64,8 +64,7 @@ module CMP(A_31, Z, LT, Fun, out);
         (Fun[2:0] == 3'b110)? A_31 | Z :
         (Fun[2:0] == 3'b101)? A_31 :
         ~ (A_31 | Z);
-    // case statement is slightly better
-    // 3 more logic eliments - 0.27M more Frequency
+    // 此处综合没有区别
 endmodule
 
 module LOGIC(A, B, Fun, out);
@@ -124,5 +123,5 @@ module SHIFT(Shamt, B, Fun, out);
         (Fun[1:0] == 2'b00)? sll_16 :
         (Fun[1:0] == 2'b01)? srl_16 :
         sra_16;
-    // 此处综合没有区别
+    // assign is better
 endmodule

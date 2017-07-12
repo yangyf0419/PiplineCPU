@@ -179,7 +179,6 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     wire [31:0] ID_processed_DataBusA;//,ID_processed_DataBusB;
     assign ID_processed_DataBusA = (ALUSrc1)? {27'b0, Shamt} : DataBusA;
-    //assign ID_processed_DataBusB = (ALUSrc2)? LUOut : DataBusB;
 
     wire [31:0] Branch; // output of ALUOut[0] mux
     wire [2:0] PCSrc;

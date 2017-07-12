@@ -52,11 +52,8 @@ wire [31:0] ALUOut;
 wire [31:0] DataBusB;
 wire PC_31;
 
-wire clk;
-clkGenerator generator(.sysclk(sysclk),.reset(reset),.clk(clk));
-
 PipelineCpu PCPU(.reset(reset),
-				  .clk(clk),
+				  .clk(sysclk),
 				  .PerData(PerData),
 				  .IRQ(IRQ),
 				  .MEM_MemRead(MemRead),
@@ -67,7 +64,7 @@ PipelineCpu PCPU(.reset(reset),
 
 Peripheral prph(
         .reset(reset),
-        .timer_clk(clk),
+        .timer_clk(sysclk),
         .sysclk(sysclk),
         .rd(MemRead),
         .wr(PerWr),
