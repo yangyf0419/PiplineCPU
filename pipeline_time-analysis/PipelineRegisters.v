@@ -19,30 +19,25 @@ input IF_ID_Write;		// solve the problem of hazard
 //input Hazard_Detection;		//To deal with branch and jump instructions
 input [31:0] IF_Instruction;
 input [31:0] IF_PC_plus_4;
-output [31:0] ID_Instruction;
-output [31:0] ID_PC_plus_4;
-
-reg [31:0] Instruction_reg;
-reg [31:0] PC_plus_4_reg;
+output reg [31:0] ID_Instruction;
+output reg [31:0] ID_PC_plus_4;
 
 always @(posedge sysclk or negedge reset) begin
 	if (~reset) begin
 		//PC_plus_4_reg <= 32'h80000004;
-		Instruction_reg <= 32'b0;
+		ID_Instruction <= 32'b0;
 	end
 	else begin
 		if(IF_Flush)	
-			Instruction_reg <= 32'b0;
+			ID_Instruction <= 32'b0;
 		else begin
 			if(IF_ID_Write)		
-				Instruction_reg <= IF_Instruction;
+				ID_Instruction <= IF_Instruction;
 		end
-		PC_plus_4_reg <= IF_PC_plus_4;
+		ID_PC_plus_4 <= IF_PC_plus_4;
 	end
 end
 
-assign ID_Instruction = Instruction_reg;
-assign ID_PC_plus_4 = PC_plus_4_reg;
 
 endmodule
 
