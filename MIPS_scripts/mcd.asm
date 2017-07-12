@@ -104,13 +104,13 @@ initial: # setup at the begining of the program
 addi $ra, $zero, 12 # set $ra as the first line of the program
 lui $t9, 16384 # $t9 = 8'h40000000
 addi $s7, $zero, 2 # $s7 = 8'h00000002
+# line 50
 addi $s6, $zero, 1 # $s6 = 8'h00000001
 addi $s5, $zero, 3 # $s5 = 8'h00000003
 addi $s4, $zero, 16 # $s4 = 16
 
 # Use Data Memory as BCD Module
 # 7'b1000000
-# line 50
 addi $t0, $zero, 64
 sw $t0, 0($zero)
 # 7'b1111001

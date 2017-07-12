@@ -20,33 +20,32 @@ output IF_ID_Write,PC_Write,ctrl_Mux;
 assign IF_ID_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
 assign PC_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
 assign ctrl_Mux = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
-//assign flush = ( (EX_PCSrc == 3'b001) & EX_ALUOut );
 
 endmodule
 
-module flush_detection_units(EX_PCSrc,
+module flush_detection_units(EX_B,
 							EX_ALUOut,
-							ID_PCSrc,
+							ID_J,
 							// output
 							IF_Flush,
 							ID_Flush,
 							EX_Flush);
 
 // EX_PCSrc is used to tell whether the intruction at EX stage is branch
-input [2:0] EX_PCSrc;
+input EX_B;
 // tell whether Branch happens
 input [31:0] EX_ALUOut;
 // used to tell whether the intruction at ID stage is jump
-input [2:0] ID_PCSrc;
+input ID_J;
 
 // stall the pipeline when the instruction is of "branch" or "jump" type
 output IF_Flush;
 output ID_Flush;
 output EX_Flush;
 
-assign IF_Flush = ( ID_PCSrc == 3'b010 ) | ( ID_PCSrc == 3'b011 ) | ( (EX_PCSrc == 3'b001) & EX_ALUOut );
-assign ID_Flush = (EX_PCSrc == 3'b001) & EX_ALUOut;
-assign EX_Flush = (EX_PCSrc == 3'b001) & EX_ALUOut;
+assign IF_Flush = (ID_J | (EX_B & EX_ALUOut));
+assign ID_Flush = EX_B & EX_ALUOut;
+assign EX_Flush = EX_B & EX_ALUOut;
 
 endmodule
 
