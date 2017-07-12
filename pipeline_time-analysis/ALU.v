@@ -46,24 +46,24 @@ module CMP(A_31, Z, LT, Fun, out);
     input Z;
     input LT;
     input [2:0] Fun; // ALUFun[3:1]
-    output reg out;
+    output out;
 
-    always@*
-        case (Fun[2:0])
-            3'b001: out <= Z; // eq
-            3'b000: out <= ~Z; // neq
-            3'b010: out <= LT; // LT
-            3'b110: out <= A_31 | Z; // lez
-            3'b101: out <= A_31; // ltz
-            default: out <= ~ (A_31 | Z); // gtz
-        endcase     
-    // assign out =
-    //     (Fun[2:0] == 3'b001)? Z : // eq
-    //     (Fun[2:0] == 3'b000)? ~Z : // neq
-    //     (Fun[2:0] == 3'b010)? LT:
-    //     (Fun[2:0] == 3'b110)? A_31 | Z :
-    //     (Fun[2:0] == 3'b101)? A_31 :
-    //     ~ (A_31 | Z);
+    // always@*
+    //     case (Fun[2:0])
+    //         3'b001: out <= Z; // eq
+    //         3'b000: out <= ~Z; // neq
+    //         3'b010: out <= LT; // LT
+    //         3'b110: out <= A_31 | Z; // lez
+    //         3'b101: out <= A_31; // ltz
+    //         default: out <= ~ (A_31 | Z); // gtz
+    //     endcase     
+    assign out =
+        (Fun[2:0] == 3'b001)? Z : // eq
+        (Fun[2:0] == 3'b000)? ~Z : // neq
+        (Fun[2:0] == 3'b010)? LT:
+        (Fun[2:0] == 3'b110)? A_31 | Z :
+        (Fun[2:0] == 3'b101)? A_31 :
+        ~ (A_31 | Z);
     // case statement is slightly better
     // 3 more logic eliments - 0.27M more Frequency
 endmodule

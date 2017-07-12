@@ -198,66 +198,50 @@ module EX_MEM_Register(sysclk,
 						MEM_branchIRQ,
 						MEM_PCSrc);
 
-input sysclk,reset;		
-input [1:0] ID_EX_MEM_ctrlSignal;
-input [2:0] ID_EX_WB_ctrlSignal;
-input [31:0] EX_DataBusB,EX_ALUOut,EX_PC_plus_4;
-input [4:0] EX_AddrC;
-input EX_IRQ;
-input [1:0] EX_branchIRQ;
-input [2:0] EX_PCSrc;
+	input sysclk,reset;		
+	input [1:0] ID_EX_MEM_ctrlSignal;
+	input [2:0] ID_EX_WB_ctrlSignal;
+	input [31:0] EX_DataBusB,EX_ALUOut,EX_PC_plus_4;
+	input [4:0] EX_AddrC;
+	input EX_IRQ;
+	input [1:0] EX_branchIRQ;
+	input [2:0] EX_PCSrc;
 
-output [31:0] MEM_ALUOut,MEM_DataBusB,MEM_PC_plus_4;
-output [1:0] MEM_ctrlSignal;
-output [2:0] WB_ctrlSignal;
-output [4:0] EX_MEM_RegisterRd;
-output reg MEM_IRQ;
-output reg [1:0] MEM_branchIRQ;
-output reg [2:0] MEM_PCSrc;
+	output reg [31:0] MEM_ALUOut,MEM_DataBusB,MEM_PC_plus_4;
+	output reg [1:0] MEM_ctrlSignal;
+	output reg [2:0] WB_ctrlSignal;
+	output reg [4:0] EX_MEM_RegisterRd;
+	output reg MEM_IRQ;
+	output reg [1:0] MEM_branchIRQ;
+	output reg [2:0] MEM_PCSrc;
 
-reg [4:0] AddrC_reg;
-reg [31:0] ALUOut_reg,DataBusB_reg;
-reg [1:0] MEM_ctrlSignal_reg;
-reg [2:0] WB_ctrlSignal_reg;
-reg [31:0] PC_plus_4_reg;
+	always @(posedge sysclk or negedge reset) begin
+		if (~reset) begin
+			EX_MEM_RegisterRd <= 5'b0;
+			MEM_ALUOut <= 32'b0;
+			MEM_DataBusB <= 32'b0;
+			MEM_ctrlSignal <= 2'b0;
+			WB_ctrlSignal <= 3'b0;
+			//PC_plus_4_reg <= 32'h80000004;
+		end
+		else begin
+			EX_MEM_RegisterRd <= EX_AddrC;
 
-always @(posedge sysclk or negedge reset) begin
-	if (~reset) begin
-		AddrC_reg <= 5'b0;
-		ALUOut_reg <= 32'b0;
-		DataBusB_reg <= 32'b0;
-		MEM_ctrlSignal_reg <= 2'b0;
-		WB_ctrlSignal_reg <= 3'b0;
-		//PC_plus_4_reg <= 32'h80000004;
+			MEM_ALUOut <= EX_ALUOut;
+
+			MEM_DataBusB <= EX_DataBusB;
+
+			MEM_ctrlSignal <= ID_EX_MEM_ctrlSignal;
+
+			WB_ctrlSignal <= ID_EX_WB_ctrlSignal;
+
+			MEM_PC_plus_4 <= EX_PC_plus_4;
+
+			MEM_IRQ <= EX_IRQ;
+			MEM_branchIRQ <= EX_branchIRQ;
+			MEM_PCSrc <= EX_PCSrc;
+		end
 	end
-	else begin
-		AddrC_reg <= EX_AddrC;
-
-		ALUOut_reg <= EX_ALUOut;
-
-		DataBusB_reg <= EX_DataBusB;
-
-		MEM_ctrlSignal_reg <= ID_EX_MEM_ctrlSignal;
-
-		WB_ctrlSignal_reg <= ID_EX_WB_ctrlSignal;
-
-		PC_plus_4_reg <= EX_PC_plus_4;
-
-		MEM_IRQ <= EX_IRQ;
-		MEM_branchIRQ <= EX_branchIRQ;
-		MEM_PCSrc <= EX_PCSrc;
-	end
-
-
-
-end
-
-	assign EX_MEM_RegisterRd = AddrC_reg;
-	assign MEM_ALUOut = ALUOut_reg;
-	assign MEM_DataBusB = DataBusB_reg;
-	assign MEM_ctrlSignal = MEM_ctrlSignal_reg;
-	assign WB_ctrlSignal = WB_ctrlSignal_reg;
-	assign MEM_PC_plus_4 = PC_plus_4_reg;
 
 endmodule
 // EX/MEM Register END
@@ -282,59 +266,47 @@ module MEM_WB_Register(sysclk,
 						WB_IRQ,
 						WB_branchIRQ);
 
-input sysclk,reset;		
-input [31:0] MEM_ALUOut;
-input [31:0] MEM_PC_plus_4;
-input [2:0] EX_MEM_WB_ctrlSignal;
-input [4:0] EX_MEM_RegisterRd;
-input [31:0] ReadData;
-input MEM_IRQ;
-input [1:0] MEM_branchIRQ;
+	input sysclk,reset;		
+	input [31:0] MEM_ALUOut;
+	input [31:0] MEM_PC_plus_4;
+	input [2:0] EX_MEM_WB_ctrlSignal;
+	input [4:0] EX_MEM_RegisterRd;
+	input [31:0] ReadData;
+	input MEM_IRQ;
+	input [1:0] MEM_branchIRQ;
 
-output [31:0] ReadData_Out;
-output [4:0] MEM_WB_RegisterRd;
-output [2:0] WB_ctrlSignal;
-output [31:0] WB_ALUOut;
-output [31:0] WB_PC_plus_4;
-output reg WB_IRQ;
-output reg [1:0] WB_branchIRQ;
+	output reg [31:0] ReadData_Out;
+	output reg [4:0] MEM_WB_RegisterRd;
+	output reg [2:0] WB_ctrlSignal;
+	output reg [31:0] WB_ALUOut;
+	output reg [31:0] WB_PC_plus_4;
+	output reg WB_IRQ;
+	output reg [1:0] WB_branchIRQ;
 
-reg [31:0] ReadData_reg;
-reg [4:0] Rd_reg;
-reg [2:0] WB_ctrlSignal_reg;
-reg [31:0] ALUOut_reg;
-reg [31:0] PC_plus_4_reg;
+	always @(posedge sysclk or negedge reset) begin
+		if (~reset) begin
+			ReadData_reg <= 32'b0;
+			Rd_reg <= 5'b0;
+			WB_ctrlSignal <= 3'b0;
+			WB_ALUOut <= 32'b0;
+			//PC_plus_4_reg <= 32'h80000004;
+		end
+		else begin
+			ReadData_Out <= ReadData;
 
-always @(posedge sysclk or negedge reset) begin
-	if (~reset) begin
-		ReadData_reg <= 32'b0;
-		Rd_reg <= 5'b0;
-		WB_ctrlSignal_reg <= 3'b0;
-		ALUOut_reg <= 32'b0;
-		//PC_plus_4_reg <= 32'h80000004;
+			Rd_reg <= EX_MEM_RegisterRd;
+
+			MEM_WB_RegisterRd <= EX_MEM_WB_ctrlSignal;
+
+			WB_ALUOut <= MEM_ALUOut;
+
+			WB_PC_plus_4 <= MEM_PC_plus_4;
+
+			WB_IRQ <= MEM_IRQ;
+			WB_branchIRQ <= MEM_branchIRQ;
+		end
+
 	end
-	else begin
-		ReadData_reg <= ReadData;
-
-		Rd_reg <= EX_MEM_RegisterRd;
-
-		WB_ctrlSignal_reg <= EX_MEM_WB_ctrlSignal;
-
-		ALUOut_reg <= MEM_ALUOut;
-
-		PC_plus_4_reg <= MEM_PC_plus_4;
-
-		WB_IRQ <= MEM_IRQ;
-		WB_branchIRQ <= MEM_branchIRQ;
-	end
-
-end
-
-	assign ReadData_Out = ReadData_reg;
-	assign MEM_WB_RegisterRd = Rd_reg;
-	assign WB_ctrlSignal = WB_ctrlSignal_reg;
-	assign WB_ALUOut = ALUOut_reg;
-	assign WB_PC_plus_4 = PC_plus_4_reg;
 
 endmodule
 // MEM/WB Register END

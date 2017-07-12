@@ -19,7 +19,7 @@
 ## PROGRAM "Quartus II"
 ## VERSION "Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition"
 
-## DATE    "Wed Jul 12 10:45:26 2017"
+## DATE    "Wed Jul 12 21:08:27 2017"
 
 ##
 ## DEVICE  "EP2C50F672C6"
@@ -45,8 +45,6 @@ create_clock -name {clk_50M} -period 20.000 -waveform { 0.000 10.000 } [get_port
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name {baud} -source [get_ports {sysclk}] -divide_by 326 -master_clock {clk_50M} [get_pins {prph|baud|bclk|regout}] 
-create_generated_clock -name {clk9600} -source [get_pins {prph|baud|bclk|regout}] -divide_by 16 -master_clock {baud} [get_pins {prph|baud|clk9600|regout}] 
 
 
 #**************************************************************
