@@ -11,7 +11,7 @@ module ALU(A, B, ALUFun, Sign, Z);
     wire z, lt;
     ADD add(A, B, ALUFun[0], Sign, z, lt, add_out);
     CMP cmp(A[31], z, lt, ALUFun[3:1], cmp_out);
-    LOGIC logic(A, B, ALUFun[3:2], logic_out);
+    LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
     always@*

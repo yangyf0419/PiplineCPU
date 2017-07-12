@@ -15,7 +15,7 @@ module CPU (reset, clk);
 
     // instruction memory part
     wire [31:0] Instruction;
-    ROM_3 rom(
+    ROM rom(
         .addr({1'b0, PC[30:0]}), // PC[31] can't be index
         .data(Instruction));
 

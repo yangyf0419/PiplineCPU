@@ -63,7 +63,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     /******************** begin ********************/
     wire [31:0] DataBusA;
     wire [31:0] DataBusB;
-    wire [31:0] DataBusC;
+    reg [31:0] DataBusC;
 
     wire [4:0] Rd;
     wire [4:0] Rt;
@@ -385,14 +385,23 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     assign EX_MEM_RegWrite = MEM_WB_ctrlSignal[0];
 
     // data memory part
-    wire MemWr;
-    output PerWr; // PeripheralWrite
+    reg MemWr;
+    output reg PerWr; // PeripheralWrite
 
     wire [31:0] MemData;
     wire [31:0] DataOut;
 
-    assign MemWr = (MEM_MemWrite && ~MEM_ALUOut[30]); // waiting to confirm
-    assign PerWr = (MEM_MemWrite && MEM_ALUOut[30]);
+    always@*
+        if (MemWrite) begin
+            MemWr <= ~ALUOut[30];
+            PerWr <= ALUOut[30];
+        end
+        else begin
+            MemWr <= 1'b0;
+            PerWr <= 1'b0;
+        end
+    // assign MemWr = (MEM_MemWrite && ~MEM_ALUOut[30]); // waiting to confirm
+    // assign PerWr = (MEM_MemWrite && MEM_ALUOut[30]);
 
     DataMem mem(
     	.reset(reset),
@@ -452,20 +461,33 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     // For easiness, I'd like to take Plan B first.
 
-    wire [31:0] interruption_target;
+    reg [31:0] interruption_target;
     /*assign interruption_target = (WB_MemtoReg[1:0] == 2'b11)? 
                                 () : 
                                 32'b0;*/
-    // schedule needed
-    assign interruption_target = (WB_branchIRQ == 2'b00) ? (WB_PC_plus_4 - 32'd4) :
-    							(WB_branchIRQ == 2'b01)? (WB_PC_plus_4 - 32'd8) :
-    							(MEM_PC_plus_4 - 32'd4);
+    always@*
+        case (WB_branchIRQ[1:0])
+            2'b00: interruption_target <= WB_PC_plus_4 - 32'd4;
+            2'b01: interruption_target <= WB_PC_plus_4 - 32'd8;
+            default: interruption_target <= MEM_PC_plus_4 - 32'd4;
+        endcase
+    // assign interruption_target = (WB_branchIRQ == 2'b00) ? (WB_PC_plus_4 - 32'd4) :
+    // 							(WB_branchIRQ == 2'b01)? (WB_PC_plus_4 - 32'd8) :
+    // 							(MEM_PC_plus_4 - 32'd4);
 
-    assign DataBusC = 
-    	(WB_MemtoReg[1:0] == 2'b00)? ( WB_IRQ? interruption_target : WB_ALUOut) :
-    	(WB_MemtoReg[1:0] == 2'b01)? WB_DataOut :
-        (WB_MemtoReg[1:0] == 2'b10)? WB_PC_plus_4 :
-    	interruption_target;
+
+    always@*
+        case (WB_MemtoReg[1:0])
+            2'b00: DataBusC <= WB_IRQ? interruption_target : WB_ALUOut;
+            2'b01: DataBusC <= WB_DataOut;
+            2'b10: DataBusC <= WB_PC_plus_4;
+            default: DataBusC <= interruption_target;
+        endcase
+    // assign DataBusC = 
+    // 	(WB_MemtoReg[1:0] == 2'b00)? ( WB_IRQ? interruption_target : WB_ALUOut) :
+    // 	(WB_MemtoReg[1:0] == 2'b01)? WB_DataOut :
+    //     (WB_MemtoReg[1:0] == 2'b10)? WB_PC_plus_4 :
+    // 	interruption_target;
 
     // When interruption happens, ID/EX.PC_plus_4 should be written to Register.
 
