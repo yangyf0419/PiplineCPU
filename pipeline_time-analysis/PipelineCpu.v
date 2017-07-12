@@ -457,9 +457,9 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
 
     always@*
         case (MEM_branchIRQ[1:0])
-            2'b00: interruption_target <= MEM_PC_plus_4;
-            2'b01: interruption_target <= MEM_PC_plus_4 - 32'd4;
-            default: interruption_target <= EX_PC_plus_4;
+            2'b00: interruption_target <= MEM_PC_plus_4 - 32'd4;
+            2'b01: interruption_target <= MEM_PC_plus_4 - 32'd8;
+            default: interruption_target <= EX_PC_plus_4 - 32'd4;
         endcase
     // assign interruption_target = (WB_branchIRQ == 2'b00) ? (WB_PC_plus_4 - 32'd4) :
     //                          (WB_branchIRQ == 2'b01)? (WB_PC_plus_4 - 32'd8) :
@@ -491,10 +491,12 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                 .MEM_RegWrite(MEM_RegWrite),
                                 .MEM_DataBusC(DataBusC),
                                 .EX_MEM_RegisterRd(EX_MEM_RegisterRd),
+                                .MEM_IRQ(MEM_IRQ),
                                 // output
                                 .WB_RegWrite(MEM_WB_RegWrite),
                                 .WB_DataBusC(WB_DataBusC),
-                                .MEM_WB_RegisterRd(MEM_WB_RegisterRd));
+                                .MEM_WB_RegisterRd(MEM_WB_RegisterRd),
+                                .WB_IRQ(WB_IRQ));
     /******************** end ********************/
 
     /******************** WB part ********************/

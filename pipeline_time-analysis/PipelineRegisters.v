@@ -222,25 +222,30 @@ module MEM_WB_Register(sysclk,
 						MEM_RegWrite,
 						MEM_DataBusC,
 						EX_MEM_RegisterRd,
+						MEM_IRQ,
 						// output
 						WB_RegWrite,
 						WB_DataBusC,
-						MEM_WB_RegisterRd);
+						MEM_WB_RegisterRd,
+						WB_IRQ);
 
 	input sysclk,reset;	
 	input MEM_RegWrite;
 	input [31:0] MEM_DataBusC;
 	input [4:0] EX_MEM_RegisterRd;
+	input MEM_IRQ;
 
 	output reg WB_RegWrite;
 	output reg [31:0] WB_DataBusC;
 	output reg [4:0] MEM_WB_RegisterRd;
+	output reg WB_IRQ;
 
 	always @(posedge sysclk or negedge reset) begin
 		if (~reset) begin
 			WB_RegWrite <= 32'b0;
 			MEM_WB_RegisterRd <= 5'b0;
 			WB_DataBusC <= 32'b0;
+			WB_IRQ <= 0;
 		end
 		else begin
 			WB_RegWrite <= MEM_RegWrite;
@@ -248,6 +253,7 @@ module MEM_WB_Register(sysclk,
 			MEM_WB_RegisterRd <= EX_MEM_RegisterRd;
 
 			WB_DataBusC <= MEM_DataBusC;
+			WB_IRQ <= MEM_IRQ;
 		end
 	end
 
