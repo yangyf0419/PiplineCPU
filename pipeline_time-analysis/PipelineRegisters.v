@@ -135,7 +135,6 @@ module ID_EX_Register(sysclk,
 
 			EX_branchIRQ <= ID_branchIRQ;
 		end
-
 	end
 
 endmodule
@@ -174,41 +173,36 @@ module EX_MEM_Register(sysclk,
 	input [1:0] EX_branchIRQ;
 	input EX_B;
 
-	output [31:0] MEM_ALUOut,MEM_DataBusB;
+	output reg [31:0] MEM_ALUOut,MEM_DataBusB;
 	output reg [31:0] MEM_PC_plus_4;
-	output [1:0] MEM_ctrlSignal;
-	output [2:0] WB_ctrlSignal;
-	output [4:0] EX_MEM_RegisterRd;
+	output reg [1:0] MEM_ctrlSignal;
+	output reg [2:0] WB_ctrlSignal;
+	output reg [4:0] EX_MEM_RegisterRd;
 	output reg MEM_IRQ;
 	output reg [1:0] MEM_branchIRQ;
 	output reg MEM_B;
 
-	reg [4:0] AddrC_reg;
-	reg [31:0] ALUOut_reg,DataBusB_reg;
-	reg [1:0] MEM_ctrlSignal_reg;
-	reg [2:0] WB_ctrlSignal_reg;
-
 	always @(posedge sysclk or negedge reset) begin
 		if (~reset) begin
-			AddrC_reg <= 5'b0;
-			ALUOut_reg <= 32'b0;
-			DataBusB_reg <= 32'b0;
-			MEM_ctrlSignal_reg <= 2'b0;
-			WB_ctrlSignal_reg <= 3'b0;
+			EX_MEM_RegisterRd <= 5'b0;
+			MEM_ALUOut <= 32'b0;
+			MEM_DataBusB <= 32'b0;
+			MEM_ctrlSignal <= 2'b0;
+			WB_ctrlSignal <= 3'b0;
 			MEM_IRQ <= 1'b0;
 			MEM_branchIRQ <= 2'b0;
 			MEM_B <= 1'b0;
 		end
 		else begin
-			AddrC_reg <= EX_AddrC;
+			EX_MEM_RegisterRd <= EX_AddrC;
 
-			ALUOut_reg <= EX_ALUOut;
+			MEM_ALUOut <= EX_ALUOut;
 
-			DataBusB_reg <= EX_DataBusB;
+			MEM_DataBusB <= EX_DataBusB;
 
-			MEM_ctrlSignal_reg <= ID_EX_MEM_ctrlSignal;
+			MEM_ctrlSignal <= ID_EX_MEM_ctrlSignal;
 
-			WB_ctrlSignal_reg <= ID_EX_WB_ctrlSignal;
+			WB_ctrlSignal <= ID_EX_WB_ctrlSignal;
 
 			MEM_PC_plus_4 <= EX_PC_plus_4;
 
@@ -217,12 +211,6 @@ module EX_MEM_Register(sysclk,
 			MEM_B <= EX_B;
 		end
 	end
-
-	assign EX_MEM_RegisterRd = AddrC_reg;
-	assign MEM_ALUOut = ALUOut_reg;
-	assign MEM_DataBusB = DataBusB_reg;
-	assign MEM_ctrlSignal = MEM_ctrlSignal_reg;
-	assign WB_ctrlSignal = WB_ctrlSignal_reg;
 
 endmodule
 // EX/MEM Register END
