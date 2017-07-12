@@ -9,43 +9,58 @@ module hazard_detection_unit(ID_EX_MemRead,
 							IF_ID_RegisterRs,
 							IF_ID_RegisterRt,
 							// output
-							IF_ID_Write,
-							PC_Write,
-							ctrl_Mux);
+							stall);
 
 input ID_EX_MemRead;
 input [4:0] ID_EX_RegisterRt,IF_ID_RegisterRs,IF_ID_RegisterRt;
-output IF_ID_Write,PC_Write,ctrl_Mux;
+output stall;
 
-assign IF_ID_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
-assign PC_Write = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
-assign ctrl_Mux = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
-
+assign stall = ( ID_EX_MemRead & ( (ID_EX_RegisterRt == IF_ID_RegisterRs) | (ID_EX_RegisterRt == IF_ID_RegisterRt) ) )? 1'b0 : 1'b1;
+// assign stall = ~ID_EX_MemRead | (ID_EX_RegisterRt != IF_ID_RegisterRs & ID_EX_RegisterRt != IF_ID_RegisterRt);
 endmodule
 
+// module flush_detection_units(EX_B,
+// 							EX_ALUOut,
+// 							ID_J,
+// 							// output
+// 							J_Flush,
+// 							B_Flush);
+
+// // EX_PCSrc is used to tell whether the intruction at EX stage is branch
+// input EX_B;
+// // tell whether Branch happens
+// input EX_ALUOut;
+// // used to tell whether the intruction at ID stage is jump
+// input ID_J;
+
+// // stall the pipeline when the instruction is of "branch" or "jump" type
+// output J_Flush;
+// output B_Flush;
+
+// assign J_Flush = ID_J;
+// assign B_Flush = EX_B & EX_ALUOut;
+
+// endmodule
 module flush_detection_units(EX_B,
 							EX_ALUOut,
 							ID_J,
 							// output
 							IF_Flush,
-							ID_Flush,
-							EX_Flush);
+							ID_Flush);
 
-// EX_PCSrc is used to tell whether the intruction at EX stage is branch
-input EX_B;
-// tell whether Branch happens
-input [31:0] EX_ALUOut;
-// used to tell whether the intruction at ID stage is jump
-input ID_J;
+	// EX_PCSrc is used to tell whether the intruction at EX stage is branch
+	input EX_B;
+	// tell whether Branch happens
+	input [31:0] EX_ALUOut;
+	// used to tell whether the intruction at ID stage is jump
+	input ID_J;
 
-// stall the pipeline when the instruction is of "branch" or "jump" type
-output IF_Flush;
-output ID_Flush;
-output EX_Flush;
+	// stall the pipeline when the instruction is of "branch" or "jump" type
+	output IF_Flush;
+	output ID_Flush;
 
-assign IF_Flush = (ID_J | (EX_B & EX_ALUOut));
-assign ID_Flush = EX_B & EX_ALUOut;
-assign EX_Flush = EX_B & EX_ALUOut;
+	assign IF_Flush = (ID_J | (EX_B & EX_ALUOut));
+	assign ID_Flush = EX_B & EX_ALUOut;
 
 endmodule
 
