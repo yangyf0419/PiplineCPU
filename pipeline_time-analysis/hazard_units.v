@@ -51,7 +51,7 @@ module flush_detection_units(EX_B,
 	// EX_PCSrc is used to tell whether the intruction at EX stage is branch
 	input EX_B;
 	// tell whether Branch happens
-	input [31:0] EX_ALUOut;
+	input EX_ALUOut;
 	// used to tell whether the intruction at ID stage is jump
 	input ID_J;
 

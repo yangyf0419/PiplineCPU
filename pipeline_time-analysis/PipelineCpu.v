@@ -349,20 +349,20 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     parameter Xp = 5'd26; // exception register
     parameter Ra = 5'd31; // function breakpoint register
 
-    reg [4:0] EX_AddrC;
-    always@*
-        case (EX_RegDst[1:0])
-            2'b00: EX_AddrC <= EX_IRQ? Xp : ID_EX_RegisterRt; 
-            2'b01: EX_AddrC <= ID_EX_RegisterRd;
-            2'b10: EX_AddrC <= Ra;
-            default: EX_AddrC <= Xp;
-        endcase
+    wire [4:0] EX_AddrC;
+    // always@*
+    //     case (EX_RegDst[1:0])
+    //         2'b00: EX_AddrC <= EX_IRQ? Xp : ID_EX_RegisterRt; 
+    //         2'b01: EX_AddrC <= ID_EX_RegisterRd;
+    //         2'b10: EX_AddrC <= Ra;
+    //         default: EX_AddrC <= Xp;
+    //     endcase
 
-    // assign EX_AddrC = 
-    //     (EX_RegDst == 2'b00)? ( EX_IRQ? Xp : ID_EX_RegisterRt) : 
-    //     (EX_RegDst == 2'b01)? ID_EX_RegisterRd :
-    //     (EX_RegDst == 2'b10)? Ra :
-    //     Xp;
+    assign EX_AddrC = 
+        (EX_RegDst == 2'b00)? ( EX_IRQ? Xp : ID_EX_RegisterRt) : 
+        (EX_RegDst == 2'b01)? ID_EX_RegisterRd :
+        (EX_RegDst == 2'b10)? Ra :
+        Xp;
 
     /******************** end ********************/
 
@@ -460,9 +460,9 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
             2'b01: interruption_target <= MEM_PC_plus_4 - 32'd8;
             default: interruption_target <= EX_PC_plus_4 - 32'd4;
         endcase
-    // assign interruption_target = (WB_branchIRQ == 2'b00) ? (WB_PC_plus_4 - 32'd4) :
-    //                          (WB_branchIRQ == 2'b01)? (WB_PC_plus_4 - 32'd8) :
-    //                          (MEM_PC_plus_4 - 32'd4);
+    // assign interruption_target = (MEM_branchIRQ == 2'b00) ? (MEM_PC_plus_4 - 32'd4) :
+    //                          (MEM_branchIRQ == 2'b01)? (MEM_PC_plus_4 - 32'd8) :
+    //                          (EX_PC_plus_4 - 32'd4);
 
     reg [31:0] DataBusC;
     wire [1:0] MEM_MemtoReg = MEM_WB_ctrlSignal[2:1];
@@ -475,9 +475,9 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
             default: DataBusC <= interruption_target;
         endcase
     // assign DataBusC = 
-    //  (WB_MemtoReg[1:0] == 2'b00)? ( WB_IRQ? interruption_target : WB_ALUOut) :
-    //  (WB_MemtoReg[1:0] == 2'b01)? WB_DataOut :
-    //     (WB_MemtoReg[1:0] == 2'b10)? WB_PC_plus_4 :
+    //  (MEM_MemtoReg[1:0] == 2'b00)? ( MEM_IRQ? interruption_target : MEM_ALUOut) :
+    //  (MEM_MemtoReg[1:0] == 2'b01)? DataOut :
+    //     (MEM_MemtoReg[1:0] == 2'b10)? MEM_PC_plus_4 :
     //  interruption_target;
     // When interruption happens, ID/EX.PC_plus_4 should be written to Register.
 

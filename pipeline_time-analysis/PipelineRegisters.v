@@ -242,7 +242,7 @@ module MEM_WB_Register(sysclk,
 
 	always @(posedge sysclk or negedge reset) begin
 		if (~reset) begin
-			WB_RegWrite <= 32'b0;
+			WB_RegWrite <= 1'b0;
 			MEM_WB_RegisterRd <= 5'b0;
 			WB_DataBusC <= 32'b0;
 			WB_IRQ <= 0;
