@@ -207,10 +207,12 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     wire [31:0] ALUOut;
 
     wire [1:0] ID_branchIRQ;
+    wire MEM_BOut;
     // if EX branch will happen, ID_branchIRQ = 01, else ID_branchIRQ = 00
     // if EX instruction is jump or MEM instruction is branch_happens, ID_ranchIRQ = 10
-    assign ID_branchIRQ = (EX_B & ALUOut[0]) ? 2'b01 :
-    						(EX_J | (MEM_B & MEM_ALUOut[0]) )? 2'b10 : 2'b00;
+    wire BOut;
+    assign ID_branchIRQ = (EX_B & BOut) ? 2'b01 :
+    						(EX_J | (MEM_B & MEM_BOut) )? 2'b10 : 2'b00;
 
     /******************** end ********************/
 
@@ -294,7 +296,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                              .ForwardB(ForwardB));
 
     flush_detection_units flush_unit(.EX_B(EX_B),
-                                     .EX_ALUOut(ALUOut[0]),
+                                     .EX_ALUOut(BOut),
                                      .ID_J(J),
                                      // output
                                      .IF_Flush(IF_Flush),
@@ -335,8 +337,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     assign input_B = (EX_ALUSrc2)? EX_LUOut : forwarding_DataBusB;
 
     // program counter part
-
-    assign Branch = ALUOut[0]? EX_ConBA : PC_plus_4;
+    assign Branch = BOut? EX_ConBA : PC_plus_4;
 
     // alu part
     ALU alu(
@@ -344,7 +345,8 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     	.B(input_B),
     	.ALUFun(EX_ALUFun),
     	.Sign(EX_Sign),
-    	.Z(ALUOut));
+    	.Z(ALUOut),
+        .BOut(BOut));
 
     parameter Xp = 5'd26; // exception register
     parameter Ra = 5'd31; // function breakpoint register
@@ -385,6 +387,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                 .EX_IRQ(EX_IRQ),
                                 .EX_branchIRQ(EX_branchIRQ),
                                 .EX_B(EX_B),
+                                .EX_BOut(BOut),
                                 // output
                                 .MEM_ALUOut(MEM_ALUOut),
                                 .WB_ctrlSignal(MEM_WB_ctrlSignal),
@@ -394,7 +397,8 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                 .MEM_PC_plus_4(MEM_PC_plus_4),
                                 .MEM_IRQ(MEM_IRQ),
                                 .MEM_branchIRQ(MEM_branchIRQ),
-                                .MEM_B(MEM_B));
+                                .MEM_B(MEM_B),
+                                .MEM_BOut(MEM_BOut));
 
     /******************** end ********************/
 

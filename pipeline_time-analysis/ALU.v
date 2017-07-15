@@ -1,16 +1,16 @@
 // ALU.v
 
-module ALU(A, B, ALUFun, Sign, Z);
+module ALU(A, B, ALUFun, Sign, Z, BOut);
     input [31:0] A, B;
     input [5:0] ALUFun;
     input Sign;
     output [31:0] Z;
+    output BOut;
 
     wire [31:0] add_out, logic_out, shift_out;
-    wire cmp_out;
     wire lt;
     ADD add(A, B, ALUFun[1:0], Sign, add_out);
-    CMP cmp(A, B, ALUFun[3:1], cmp_out);
+    CMP cmp(A, B, ALUFun[3:1], BOut);
     LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
@@ -24,8 +24,7 @@ module ALU(A, B, ALUFun, Sign, Z);
     assign Z =
         (ALUFun[5:4] == 2'b00)? add_out:
         (ALUFun[5:4] == 2'b01)? logic_out:
-        (ALUFun[5:4] == 2'b10)? shift_out:
-        {31'b0, cmp_out};
+        shift_out;
 
 endmodule
 

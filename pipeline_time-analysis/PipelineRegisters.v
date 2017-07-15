@@ -153,6 +153,7 @@ module EX_MEM_Register(sysclk,
 						EX_IRQ,
 						EX_branchIRQ,
 						EX_B,
+						EX_BOut,
 						// output
 						MEM_ALUOut,
 						WB_ctrlSignal,
@@ -162,7 +163,8 @@ module EX_MEM_Register(sysclk,
 						MEM_PC_plus_4,
 						MEM_IRQ,
 						MEM_branchIRQ,
-						MEM_B);
+						MEM_B,
+						MEM_BOut);
 
 	input sysclk,reset;		
 	input [1:0] ID_EX_MEM_ctrlSignal;
@@ -172,6 +174,7 @@ module EX_MEM_Register(sysclk,
 	input EX_IRQ;
 	input [1:0] EX_branchIRQ;
 	input EX_B;
+	input EX_BOut;
 
 	output reg [31:0] MEM_ALUOut,MEM_DataBusB;
 	output reg [31:0] MEM_PC_plus_4;
@@ -181,6 +184,7 @@ module EX_MEM_Register(sysclk,
 	output reg MEM_IRQ;
 	output reg [1:0] MEM_branchIRQ;
 	output reg MEM_B;
+	output reg MEM_BOut;
 
 	always @(posedge sysclk or negedge reset) begin
 		if (~reset) begin
@@ -192,6 +196,7 @@ module EX_MEM_Register(sysclk,
 			MEM_IRQ <= 1'b0;
 			MEM_branchIRQ <= 2'b0;
 			MEM_B <= 1'b0;
+			MEM_BOut <= 1'b0;
 		end
 		else begin
 			EX_MEM_RegisterRd <= EX_AddrC;
@@ -209,6 +214,7 @@ module EX_MEM_Register(sysclk,
 			MEM_IRQ <= EX_IRQ;
 			MEM_branchIRQ <= EX_branchIRQ;
 			MEM_B <= EX_B;
+			MEM_BOut <= EX_BOut;
 		end
 	end
 
