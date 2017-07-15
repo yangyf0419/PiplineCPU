@@ -8,9 +8,9 @@ module ALU(A, B, ALUFun, Sign, Z);
 
     wire [31:0] add_out, logic_out, shift_out;
     wire cmp_out;
-    wire z, lt;
-    ADD add(A, B, ALUFun[0], Sign, z, lt, add_out);
-    CMP cmp(A[31], z, lt, ALUFun[3:1], cmp_out);
+    wire lt;
+    ADD add(A, B, ALUFun[1:0], Sign, add_out);
+    CMP cmp(A, B, ALUFun[3:1], cmp_out);
     LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
@@ -29,33 +29,34 @@ module ALU(A, B, ALUFun, Sign, Z);
 
 endmodule
 
-module ADD(A, B, Fun, Sign, Z, LT, out);
+module ADD(A, B, Fun, Sign, out);
     input [31:0] A, B;
-    input Fun; // ALUFun[0]
+    input [1:0] Fun; // ALUFun[1:0]
     input Sign;
-    output Z;
-    output LT;
+    wire LT;
+    wire [31:0] addsub;
     output [31:0] out;
-    assign out = Fun? A - B : A + B;
-    assign Z = ~(|out);
+    assign addsub = Fun[0]? A - B : A + B;
     assign LT = (~Sign & (A[31] ^ B[31]))? B[31] : out[31];
+    assign out = Fun[1]? {31'b0, LT} : addsub;
 endmodule
 
-module CMP(A_31, Z, LT, Fun, out);
-    input A_31;
-    input Z;
-    input LT;
+module CMP(A, B, Fun, out);
+    input [31:0] A, B;
+    wire [31:0] tmp;
+    wire Z;
     input [2:0] Fun; // ALUFun[3:1]
     output reg out;
 
+    assign tmp = A ^ B;
+    assign Z = |tmp;
     always@*
     case (Fun[2:0])
-        3'b001: out <= Z; // eq
-        3'b000: out <= ~Z; // neq
-        3'b010: out <= LT; // LT
-        3'b110: out <= A_31 | Z; // lez
-        3'b101: out <= A_31; // ltz
-        default: out <= ~ (A_31 | Z); // gtz
+        3'b001: out <= ~Z; // eq
+        3'b000: out <= Z; // neq
+        3'b110: out <= A[31] | ~Z; // lez
+        3'b101: out <= A[31]; // ltz
+        default: out <= ~ (A[31] | ~Z); // gtz
     endcase     
     // assign out =
     //     (Fun[2:0] == 3'b001)? Z : // eq

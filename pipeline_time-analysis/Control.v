@@ -139,8 +139,8 @@ module Control(OpCode, Funct, IRQ,
             6'h00: ALUFunTmp[5:0] <= 6'b100000; // sll
             6'h02: ALUFunTmp[5:0] <= 6'b100001; // srl
             6'h03: ALUFunTmp[5:0] <= 6'b100011; // sra
-            6'h2a: ALUFunTmp[5:0] <= 6'b110101; // slt
-            6'h2b: ALUFunTmp[5:0] <= 6'b110101; // sltu
+            6'h2a: ALUFunTmp[5:0] <= 6'b000011; // slt
+            6'h2b: ALUFunTmp[5:0] <= 6'b000011; // sltu
             default: ALUFunTmp[5:0] <= 6'b000000;
         endcase
 
@@ -148,8 +148,8 @@ module Control(OpCode, Funct, IRQ,
         case(OpCode)
             6'h00: ALUFun[5:0] <= ALUFunTmp; // R type
             6'h0c: ALUFun[5:0] <= 6'b011000; // andi
-            6'h0a: ALUFun[5:0] <= 6'b110101; // slti
-            6'h0b: ALUFun[5:0] <= 6'b110101; // sltiu
+            6'h0a: ALUFun[5:0] <= 6'b000011; // slti
+            6'h0b: ALUFun[5:0] <= 6'b000011; // sltiu
             6'h04: ALUFun[5:0] <= 6'b110011; // beq
             6'h05: ALUFun[5:0] <= 6'b110001; // bne
             6'h06: ALUFun[5:0] <= 6'b111101; // blez
