@@ -72,7 +72,6 @@ Peripheral prph(
         .wdata(DataBusB),
         .rdata(PerData),
         .led(led),
-        .switch(switch),
         .digi(digi_in),
         .irqout(IRQ),
         .rxd(rxd),

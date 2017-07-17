@@ -82,10 +82,10 @@ module Control(OpCode, Funct, IRQ,
         1'b1;
 
     assign RegDst[1:0] =
-        (IRQ || exception)? 2'b11:
+        (IRQ || exception)? 2'b00:
         (OpCode == 6'h03)? 2'b10: // jal
         (OpCode == 6'h00)? 2'b01: // R type, jr, jalr
-        2'b00;
+        2'b11;
 
     assign MemRead =
         (OpCode == 6'h23)? 1'b1: // lw
@@ -96,12 +96,12 @@ module Control(OpCode, Funct, IRQ,
         1'b0;
 
     assign MemtoReg =
-        IRQ? 2'b11 :
+        IRQ? 2'b00 :
         (exception ||
         OpCode == 6'h03 || // jal
         (OpCode == 6'h00 && Funct == 6'h09))? 2'b10: // jalr
         (OpCode == 6'h23)? 2'b01: // lw
-        2'b00;
+        2'b11;
 
     assign ALUSrc1 = 
         (OpCode == 6'h00 && (Funct == 6'h00 || // sll

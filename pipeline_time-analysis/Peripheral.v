@@ -2,7 +2,7 @@
 
 //Interface
 
-module Peripheral (reset,timer_clk,sysclk,rd,wr,addr,wdata,rdata,led,switch,digi,irqout,rxd,txd,PC_31);
+module Peripheral (reset,timer_clk,sysclk,rd,wr,addr,wdata,rdata,led,digi,irqout,rxd,txd,PC_31);
 input reset,timer_clk;
 input sysclk;   // 50M clk
 input rd,wr;
@@ -14,7 +14,7 @@ reg [31:0] rdata;
 
 output [7:0] led;
 reg [7:0] led;
-input [7:0] switch;
+// input [7:0] switch;
 output [11:0] digi;
 reg [11:0] digi;
 output irqout;
@@ -132,7 +132,7 @@ always@(*) begin
             32'h40000004: rdata <= TL;          
             32'h40000008: rdata <= {29'b0,TCON};                
             32'h4000000C: rdata <= {24'b0,led};         
-            32'h40000010: rdata <= {24'b0,switch};
+            // 32'h40000010: rdata <= {24'b0,switch};
             32'h40000014: rdata <= {20'b0,digi};
             32'h40000018: rdata <= {24'b0,UART_TXD};
             32'h4000001C: rdata <= {24'b0,UART_RXD};

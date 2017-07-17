@@ -118,28 +118,6 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
         .B(B),
         .J(J));
 
-    /***** Integrating the control signals according to the stages where they work ****/
-    /******************** begin ********************/
-    wire [2:0] WB_ctrlSignal;
-    wire [1:0] MEM_ctrlSignal;
-    wire [10:0] EX_ctrlSignal;
-    wire [15:0] whole_ctrlSignal;
-
-    // LUOp, ExtOp, ALUSrc1, ALUSrc2 should be discarded.
-    // EX_ctrlSignal[1:0]=RegDst, EX_ctrlSignal[7:2]=ALUFun
-    // EX_ctrlSignal[8]=Sign, EX_ctrlSignal[9]=J, MEM_ctrlSignal[10]=B
-    assign EX_ctrlSignal = {B,J,Sign,ALUFun,RegDst};
-
-    // MEM_ctrlSignal[0]=MemWrite, MEM_ctrlSignal[1]=MemRead
-    assign MEM_ctrlSignal = {MemRead,MemWrite};
-
-    // WB_ctrlSignal[0]=RegWrite, WB_ctrlSignal[2:1]=MemtoReg
-    assign WB_ctrlSignal = {MemtoReg,RegWrite};
-
-    // whole_ctrlSignal[15:13]=WB_ctrlSignal, whole_ctrlSignal[12:11]=MEM_ctrlSignal, whole_ctrlSignal[10:0]=EX_ctrlSignal
-    assign whole_ctrlSignal = {WB_ctrlSignal,MEM_ctrlSignal,EX_ctrlSignal};
-    /******************** end ********************/
-
     wire [15:0] sent_to_Register_ctrlSignal;
     wire [4:0] ID_EX_RegisterRt;
     wire ID_EX_MemRead;
@@ -151,7 +129,29 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
                                     // output
                                     .stall(stall));
 
-    assign sent_to_Register_ctrlSignal = (~stall | ID_Flush | IRQ)?  16'b0 : whole_ctrlSignal;
+    // assign sent_to_Register_ctrlSignal = (~stall | ID_Flush | IRQ)?  16'b0 : whole_ctrlSignal;
+
+    /***** Integrating the control signals according to the stages where they work ****/
+    /******************** begin ********************/
+    wire [2:0] WB_ctrlSignal;
+    wire [1:0] MEM_ctrlSignal;
+    wire [10:0] EX_ctrlSignal;
+    wire [15:0] whole_ctrlSignal;
+
+    // LUOp, ExtOp, ALUSrc1, ALUSrc2 should be discarded.
+    // EX_ctrlSignal[1:0]=RegDst, EX_ctrlSignal[7:2]=ALUFun
+    // EX_ctrlSignal[8]=Sign, EX_ctrlSignal[9]=J, MEM_ctrlSignal[10]=B
+    assign EX_ctrlSignal = {(~stall | ID_Flush | IRQ)? 8'b0 : {B,J,Sign,ALUFun}, RegDst};
+
+    // MEM_ctrlSignal[0]=MemWrite, MEM_ctrlSignal[1]=MemRead
+    assign MEM_ctrlSignal = (~stall | ID_Flush | IRQ)? 2'b0 : {MemRead,MemWrite};
+
+    // WB_ctrlSignal[0]=RegWrite, WB_ctrlSignal[2:1]=MemtoReg
+    assign WB_ctrlSignal = {MemtoReg, (~stall | ID_Flush | IRQ)? 1'b0 : RegWrite};
+
+    // whole_ctrlSignal[15:13]=WB_ctrlSignal, whole_ctrlSignal[12:11]=MEM_ctrlSignal, whole_ctrlSignal[10:0]=EX_ctrlSignal
+    assign whole_ctrlSignal = {WB_ctrlSignal,MEM_ctrlSignal,EX_ctrlSignal};
+    /******************** end ********************/
 
     wire [4:0] MEM_WB_RegisterRd;
     wire MEM_WB_RegWrite;
@@ -230,7 +230,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     wire [1:0] EX_branchIRQ;
     ID_EX_Register RegisterII(.sysclk(clk),
                               .reset(reset),
-                              .wholeSignal(sent_to_Register_ctrlSignal),
+                              .wholeSignal(whole_ctrlSignal),
                               .IF_ID_RegisterRs(Rs),
                               .IF_ID_RegisterRt(Rt),
                               .IF_ID_RegisterRd(Rd),
@@ -345,8 +345,13 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     	.B(input_B),
     	.ALUFun(EX_ALUFun),
     	.Sign(EX_Sign),
-    	.Z(ALUOut),
-        .BOut(BOut));
+    	.Z(ALUOut));
+
+    CMP cmp(
+        .A(input_A),
+        .B(input_B),
+        .Fun(EX_ALUFun[3:1]),
+        .out(BOut));
 
     parameter Xp = 5'd26; // exception register
     parameter Ra = 5'd31; // function breakpoint register
@@ -361,10 +366,10 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     //     endcase
 
     assign EX_AddrC = 
-        (EX_RegDst == 2'b00)? ( EX_IRQ? Xp : ID_EX_RegisterRt) : 
+        (EX_RegDst == 2'b00)? Xp :
         (EX_RegDst == 2'b01)? ID_EX_RegisterRd :
         (EX_RegDst == 2'b10)? Ra :
-        Xp;
+        ID_EX_RegisterRt;
 
     /******************** end ********************/
 
@@ -473,7 +478,7 @@ module PipelineCpu (reset, clk, PerData, IRQ, MEM_MemRead, PerWr, MEM_ALUOut, ME
     wire MEM_RegWrite = MEM_WB_ctrlSignal[0];
     always@*
         case (MEM_MemtoReg[1:0])
-            2'b00: DataBusC <= MEM_IRQ? interruption_target : MEM_ALUOut;
+            2'b11: DataBusC <= MEM_ALUOut;
             2'b01: DataBusC <= DataOut;
             2'b10: DataBusC <= MEM_PC_plus_4;
             default: DataBusC <= interruption_target;

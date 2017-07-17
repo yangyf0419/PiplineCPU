@@ -1,16 +1,16 @@
 // ALU.v
 
-module ALU(A, B, ALUFun, Sign, Z, BOut);
+module ALU(A, B, ALUFun, Sign, Z);
     input [31:0] A, B;
     input [5:0] ALUFun;
     input Sign;
     output [31:0] Z;
-    output BOut;
+    // output BOut;
 
     wire [31:0] add_out, logic_out, shift_out;
     wire lt;
     ADD add(A, B, ALUFun[1:0], Sign, add_out);
-    CMP cmp(A, B, ALUFun[3:1], BOut);
+    // CMP cmp(A, B, ALUFun[3:1], BOut);
     LOGIC lgc(A, B, ALUFun[3:2], logic_out);
     SHIFT shift(A[4:0], B, ALUFun[1:0], shift_out);
 
@@ -18,8 +18,7 @@ module ALU(A, B, ALUFun, Sign, Z, BOut);
     //     case (ALUFun[5:4])
     //         2'b00: Z <= add_out;
     //         2'b01: Z <= logic_out;
-    //         2'b10: Z <= shift_out;
-    //         default: Z <= {31'b0, cmp_out};
+    //         default: Z <= shift_out;
     //     endcase
     assign Z =
         (ALUFun[5:4] == 2'b00)? add_out:
@@ -50,39 +49,38 @@ module CMP(A, B, Fun, out);
     assign tmp = A ^ B;
     assign Z = |tmp;
     always@*
-    case (Fun[2:0])
-        3'b001: out <= ~Z; // eq
-        3'b000: out <= Z; // neq
-        3'b110: out <= A[31] | ~Z; // lez
-        3'b101: out <= A[31]; // ltz
-        default: out <= ~ (A[31] | ~Z); // gtz
-    endcase     
+        case (Fun[2:0])
+            3'b001: out <= ~Z; // eq
+            3'b000: out <= Z; // neq
+            3'b110: out <= A[31] | ~Z; // lez
+            3'b101: out <= A[31]; // ltz
+            default: out <= ~A[31] & Z; // gtz
+        endcase     
     // assign out =
-    //     (Fun[2:0] == 3'b001)? Z : // eq
-    //     (Fun[2:0] == 3'b000)? ~Z : // neq
-    //     (Fun[2:0] == 3'b010)? LT:
-    //     (Fun[2:0] == 3'b110)? A_31 | Z :
-    //     (Fun[2:0] == 3'b101)? A_31 :
-    //     ~ (A_31 | Z);
+    //     (Fun[2:0] == 3'b001)? ~Z : // eq
+    //     (Fun[2:0] == 3'b000)? Z : // neq
+    //     (Fun[2:0] == 3'b110)? A[31] | ~Z :
+    //     (Fun[2:0] == 3'b101)? A[31] :
+    //     ~ (A[31] | ~Z);
     // 此处综合没有区别
 endmodule
 
 module LOGIC(A, B, Fun, out);
     input [31:0] A, B;
     input [1:0] Fun; // ALUFun[3:2]
-    output reg [31:0] out;
-    always @*
-        case (Fun[1:0])
-            2'b10: out <= A & B;
-            2'b11: out <= A | B;
-            2'b01: out <= A ^ B;
-            default: out <= ~(A | B);
-        endcase
-    // assign out =
-    //     (Fun[1:0] == 2'b10)? A & B :
-    //     (Fun[1:0] == 2'b11)? A | B :
-    //     (Fun[1:0] == 2'b01)? A ^ B :
-    //     ~(A | B);
+    output [31:0] out;
+    // always @*
+    //     case (Fun[1:0])
+    //         2'b10: out <= A & B;
+    //         2'b11: out <= A | B;
+    //         2'b01: out <= A ^ B;
+    //         default: out <= ~(A | B);
+    //     endcase
+    assign out =
+        (Fun[1:0] == 2'b10)? A & B :
+        (Fun[1:0] == 2'b11)? A | B :
+        (Fun[1:0] == 2'b01)? A ^ B :
+        ~(A | B);
     // 此处综合没有区别
 endmodule
 
